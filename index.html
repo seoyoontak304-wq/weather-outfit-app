@@ -31,11 +31,12 @@
             width: 100%;
             max-width: 440px;
         }
+        
         .hidden {
             display: none !important;
         }
 
-        /* 카드 공통 */
+        /* 카드 메인 컨테이너 */
         .card {
             border-radius: 24px;
             padding: 28px 24px;
@@ -43,9 +44,9 @@
         }
 
         .input-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
         h1 {
@@ -67,7 +68,7 @@
         }
 
         .section-group {
-            margin-bottom: 22px;
+            margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.5);
             padding: 16px;
             border-radius: 16px;
@@ -84,20 +85,23 @@
         .btn-location {
             width: 100%;
             padding: 12px;
-            background: #4a90e2;
+            background: #3b82f6;
             color: white;
             border: none;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.2s;
         }
-        .btn-location:hover { background: #357abd; }
+
+        .btn-location:hover {
+            background: #2563eb;
+        }
 
         .select-location {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #cbd5e1;
             border-radius: 10px;
             background: white;
             font-size: 0.9rem;
@@ -106,12 +110,12 @@
 
         .location-result {
             font-size: 0.85rem;
-            color: #2b6cb0;
+            color: #1d4ed8;
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
-        /* 버튼 그룹 (날씨/체감, 야외 활동) */
+        /* 버튼 그리드 (날씨/체감, 야외 활동) */
         .btn-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -126,76 +130,77 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            color: #4a5568;
+            color: #475569;
             text-align: center;
         }
 
         .chip-btn.selected {
-            background: #3182ce;
+            background: #2563eb;
             color: white;
-            border-color: #3182ce;
+            border-color: #2563eb;
             font-weight: 600;
-            box-shadow: 0 4px 10px rgba(49, 130, 206, 0.3);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
 
-        /* 경고 메시지 */
+        /* 경고 문구 */
         .error-msg {
-            color: #e53e3e;
+            color: #ef4444;
             font-size: 0.8rem;
             font-weight: 600;
-            margin-top: 6px;
+            margin-top: 8px;
             display: none;
         }
 
-        /* AI 추천 받기 버튼 */
+        /* 제출 버튼 */
         .submit-btn {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
             border: none;
             border-radius: 14px;
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.25);
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+            transition: transform 0.1s;
         }
 
         .submit-btn:active {
             transform: scale(0.98);
         }
 
-        /* 2. AI 코디 결과 화면 */
-        /* 동적 테마 배경색 처리 */
+        /* 2. AI 코디 결과 화면 테마 설정 */
         body.theme-bright {
             background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
         }
+
         body.theme-cloudy {
             background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
         }
+
         body.theme-rainy {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
         }
 
         .result-card {
-            background: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            color: #0f172a;
         }
 
-        /* 상단 날씨 정보 영역 */
+        /* 메인 헤더 영역 */
         .weather-hero {
             text-align: center;
             margin-bottom: 20px;
         }
 
         .weather-emoji {
-            font-size: 4rem;
+            font-size: 3.8rem;
             line-height: 1.1;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .hero-location {
@@ -211,15 +216,15 @@
             line-height: 1.1;
         }
 
-        /* 코디 추천 사진 영역 */
+        /* 추천 이미지 노출 */
         .outfit-image-container {
             width: 100%;
-            height: 260px;
+            height: 280px;
             border-radius: 16px;
             overflow: hidden;
             margin-bottom: 20px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            background: #e2e8f0;
+            background: #cbd5e1;
         }
 
         .outfit-image-container img {
@@ -229,7 +234,7 @@
             display: block;
         }
 
-        /* 코디 상세 설명 카드 */
+        /* 코디 설명 카드 */
         .outfit-details {
             display: flex;
             flex-direction: column;
@@ -240,7 +245,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.75);
             padding: 12px 16px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.9);
@@ -259,29 +264,38 @@
             text-align: right;
         }
 
-        .reset-btn {
+        .btn-action {
             width: 100%;
             padding: 14px;
-            background: #334155;
-            color: white;
             border: none;
             border-radius: 12px;
             font-size: 0.95rem;
             font-weight: 600;
-            margin-top: 20px;
+            margin-top: 16px;
             cursor: pointer;
             transition: 0.2s;
         }
-        .reset-btn:hover { background: #1e293b; }
+
+        .btn-primary-reset {
+            background: #0f172a;
+            color: white;
+        }
+
+        .btn-secondary-reset {
+            background: transparent;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body class="input-theme">
 
-    <!-- 1. 입력 화면 -->
+    <!-- 1. 메인 입력 화면 -->
     <div id="inputScreen" class="screen card input-card">
         <h1>🌤️ AI 맞춤 날씨 코디</h1>
 
-        <!-- 1. 위치 선택 -->
+        <!-- 1) 현재 위치 & 날씨 체감 선택 -->
         <div class="section-group">
             <div class="section-title">1. 현재 위치 선택 (필수)</div>
             <div class="location-box">
@@ -305,7 +319,7 @@
             </div>
         </div>
 
-        <!-- 2. 날씨 & 체감 상태 (중복 선택) -->
+        <!-- 2) 날씨 & 체감 상태 (8개 버튼, 중복 선택 가능) -->
         <div class="section-group">
             <div class="section-title">2. 날씨 & 체감 상태 (다중 선택 가능)</div>
             <div class="btn-grid" id="weatherGrid">
@@ -321,7 +335,7 @@
             <div id="weatherError" class="error-msg">필수항목을 먼저 선택해 주세요.</div>
         </div>
 
-        <!-- 3. 야외 활동 목적 (단일 선택) -->
+        <!-- 3) 야외 활동 목적 (3개 버튼) -->
         <div class="section-group">
             <div class="section-title">3. 야외 활동 목적</div>
             <div class="btn-grid" id="purposeGrid">
@@ -335,7 +349,7 @@
         <button type="button" class="submit-btn" onclick="generateOutfit()">✨ AI 옷차림 추천받기</button>
     </div>
 
-    <!-- 2. 결과 화면 -->
+    <!-- 2. AI 코디 추천 결과 화면 -->
     <div id="resultScreen" class="screen card result-card hidden">
         <div class="weather-hero">
             <div id="resEmoji" class="weather-emoji">☀️</div>
@@ -343,12 +357,12 @@
             <div id="resTemp" class="hero-temp">24°C</div>
         </div>
 
-        <!-- 다양한 코디 이미지 -->
+        <!-- 이미지 추천 영역 -->
         <div class="outfit-image-container">
-            <img id="outfitImg" src="" alt="추천 코디 이미지">
+            <img id="outfitImg" src="" alt="AI 추천 코디 이미지">
         </div>
 
-        <!-- 코디 상세 설명 -->
+        <!-- 코디 세부 항목 정보 -->
         <div class="outfit-details">
             <div class="outfit-item">
                 <span class="outfit-label">👕 상의</span>
@@ -368,8 +382,8 @@
             </div>
         </div>
 
-        <button type="button" class="reset-btn" onclick="generateOutfit()">🔄 다른 코디 다시 추천받기</button>
-        <button type="button" class="reset-btn" style="background: transparent; color: #64748b; margin-top: 8px; border: 1px solid #cbd5e1;" onclick="goBack()">⚙️ 설정 다시 하기</button>
+        <button type="button" class="btn-action btn-primary-reset" onclick="generateOutfit()">🔄 다시 코디하기 (다른 스타일)</button>
+        <button type="button" class="btn-action btn-secondary-reset" onclick="goBack()">⚙️ 설정 다시 하기</button>
     </div>
 
     <script>
@@ -377,19 +391,18 @@
         let selectedWeathers = [];
         let selectedPurpose = "";
 
-        // 1. 위치 관련 처리
+        // 1. 위치 기능 구현
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                        // 위치 가져오기 성공 샘플 (실제 서비스시 역지오코딩 적용)
                         selectedLocation = "현재 위치 (서울특별시 마포구)";
                         document.getElementById('locationResult').innerText = "✅ " + selectedLocation;
                         document.getElementById('locationSelect').value = "";
                         hideError('locationError');
                     },
                     (err) => {
-                        alert("위치 정보를 가져올 수 없습니다. 직접 지역을 선택해 주세요.");
+                        alert("위치 접근 허용이 필요하거나 정보를 불러올 수 없습니다. 아래 드롭다운에서 지역을 선택해 주세요.");
                     }
                 );
             }
@@ -404,10 +417,9 @@
             }
         }
 
-        // 2. 날씨 & 체감 버튼 (중복 선택)
+        // 2. 날씨 및 체감 다중 선택 버튼 이벤트
         document.querySelectorAll('#weatherGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // 순서 검증: 위치 미선택 시 경고
                 if (!selectedLocation) {
                     showError('locationError');
                     return;
@@ -428,10 +440,9 @@
             });
         });
 
-        // 3. 야외 활동 목적 버튼 (단일 선택)
+        // 3. 야외 활동 목적 단일 선택 버튼 이벤트
         document.querySelectorAll('#purposeGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // 순서 검증: 이전 필수 항목 체크
                 if (!selectedLocation) {
                     showError('locationError');
                     return;
@@ -456,9 +467,8 @@
             document.getElementById(id).style.display = 'none';
         }
 
-        // 4. 결과 생성 및 화면 전환
+        // 4. AI 코디 생성 및 화면 전환
         function generateOutfit() {
-            // 순서 및 필수 항목 최종 검증
             if (!selectedLocation) {
                 showError('locationError');
                 return;
@@ -472,72 +482,69 @@
                 return;
             }
 
-            // --- 날씨 조건에 맞춘 디자인 & 이모지 변환 ---
+            // 조건 판단
             const isRainy = selectedWeathers.includes('비');
             const isCloudy = selectedWeathers.includes('흐림');
             const isSnow = selectedWeathers.includes('눈');
             const isHot = selectedWeathers.includes('무더워/땡볕');
             const isCold = selectedWeathers.includes('쌀쌀함/선선');
 
-            // 배경 설정: 비/흐림이 아닌 경우 밝은 색상 선호
-            document.body.className = ""; // 이전 클래스 제거
+            // 동적 바탕 색상 및 이모지 설정 (비, 흐림 제외 시 밝은 테마 사용)
+            document.body.className = "";
             let bgTheme = "theme-bright"; 
             let emoji = "☀️";
-            let defaultTemp = "24°C";
+            let defaultTemp = "25°C";
 
             if (isRainy) {
                 bgTheme = "theme-rainy";
                 emoji = "🌧️";
-                defaultTemp = "19°C";
+                defaultTemp = "18°C";
             } else if (isCloudy) {
                 bgTheme = "theme-cloudy";
                 emoji = "☁️";
-                defaultTemp = "21°C";
+                defaultTemp = "20°C";
             } else if (isSnow) {
                 bgTheme = "theme-cloudy";
                 emoji = "❄️";
-                defaultTemp = "-2°C";
+                defaultTemp = "-1°C";
             } else if (isHot) {
                 bgTheme = "theme-bright";
                 emoji = "☀️";
-                defaultTemp = "31°C";
+                defaultTemp = "30°C";
             } else if (isCold) {
                 bgTheme = "theme-bright";
                 emoji = "🍂";
-                defaultTemp = "14°C";
+                defaultTemp = "15°C";
             }
 
             document.body.classList.add(bgTheme);
 
-            // 데이터 반영
+            // 데이터 표출
             document.getElementById('resEmoji').innerText = emoji;
             document.getElementById('resLocation').innerText = selectedLocation;
             document.getElementById('resTemp').innerText = defaultTemp;
 
-            // --- 랜덤 코디 사진 및 추천 데이터 세팅 ---
-            // 캐시 방지를 위해 시각(timestamp) 및 랜덤 파라미터 부여
-            const randomId = Math.floor(Math.random() * 1000);
-            
-            // 활동/날씨 키워드로 Unsplash 이미지 무작위 추출
-            let imgKeyword = isHot ? 'summer-fashion' : (isCold || isSnow ? 'winter-fashion' : 'casual-fashion');
-            if (selectedPurpose === '러닝') imgKeyword = 'running-wear';
-            
-            document.getElementById('outfitImg').src = `https://source.unsplash.com/featured/600x800/?${imgKeyword}&sig=${randomId}`;
+            // 다시 추천 요청 시 매번 다른 이미지를 위해 랜덤 파라미터 부여
+            const randomSeed = Math.floor(Math.random() * 10000);
+            let imgCategory = isHot ? 'summer-fashion' : (isCold || isSnow ? 'winter-fashion' : 'street-style');
+            if (selectedPurpose === '러닝') imgCategory = 'running-outfit';
 
-            // 다채로운 랜덤 추천 데이터베이스
+            document.getElementById('outfitImg').src = `https://picsum.photos/600/800?random=${randomSeed}`;
+
+            // 다채로운 조합을 위한 추천 풀
             const outfitsData = {
-                top: ["오버핏 린넨 반팔", "기능성 코튼 티셔츠", "캐주얼 단가라 스트라이프", "스페셜 와플 맨투맨", "베이직 라운드 니트"],
-                bottom: ["편안한 밴딩 슬랙스", "데님 파티그 팬츠", "스트릿 조거 팬츠", "쿨링 버뮤다 쇼츠", "코튼 카고 팬츠"],
-                outer: ["경량 윈드브레이커", "오버핏 카디건", "트렌디 데님 자켓", "지퍼 홑겹 점퍼", "선택 안함 (단품)"],
-                items: ["양산 & UV 차단 선글라스", "보호용 장우산", "기능성 슬링백 & 텀블러", "가벼운 캡모자", "방수 미니 백"]
+                top: ["오버핏 린넨 반팔 셔츠", "캐주얼 단가라 피케 셔츠", "기능성 크루넥 티셔츠", "소프트 오버사이즈 니트", "베이직 맨투맨"],
+                bottom: ["와이드 데님 팬츠", "쿨링 버뮤다 쇼츠", "테이퍼드 슬랙스", "스트릿 조거 팬츠", "코튼 카고 팬츠"],
+                outer: ["경량 윈드브레이커", "오버핏 베이지 카디건", "클래식 데님 자켓", "지퍼 홑겹 점퍼", "선택 안함 (단품 추천)"],
+                items: ["양산 & UV 차단 선글라스", "접이식 휴대용 우산", "기능성 슬링백 & 텀블러", "볼캡 모자", "미니 크로스백"]
             };
 
-            const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const getRandomItem = (array) => array[Math.floor(Math.random() * array.length)];
 
-            document.getElementById('resTop').innerText = getRandom(outfitsData.top);
-            document.getElementById('resBottom').innerText = getRandom(outfitsData.bottom);
-            document.getElementById('resOuter').innerText = isHot ? "선택 안함 (단품 추천)" : getRandom(outfitsData.outer);
-            document.getElementById('resItems').innerText = isRainy ? "보호용 장우산 & 방수백" : getRandom(outfitsData.items);
+            document.getElementById('resTop').innerText = getRandomItem(outfitsData.top);
+            document.getElementById('resBottom').innerText = getRandomItem(outfitsData.bottom);
+            document.getElementById('resOuter').innerText = isHot ? "선택 안함 (단품 추천)" : getRandomItem(outfitsData.outer);
+            document.getElementById('resItems').innerText = isRainy ? "보호용 장우산 & 방수 백 Cover" : getRandomItem(outfitsData.items);
 
             // 화면 전환
             document.getElementById('inputScreen').classList.add('hidden');
