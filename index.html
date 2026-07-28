@@ -6,8 +6,10 @@
   <title>야외활동 쾌적 케어 AI</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Kakao Maps API -->
+  
+  <!-- 🔑 [카카오맵 API] YOUR_KAKAO_JS_KEY 부분을 발급받으신 JavaScript 키로 교체하세요! -->
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JS_KEY&libraries=services"></script>
+
   <style>
     .selected-btn {
       border-color: #3b82f6 !important;
@@ -42,19 +44,20 @@
         </button>
       </div>
       
-      <p class="text-xs text-slate-500 mb-2">체감되는 날씨 상태를 선택해주세요 (다시 누르면 취소):</p>
+      <p class="text-xs text-slate-500 mb-2">체감 날씨를 선택해주세요 (복수 선택 가능 / 다시 누르면 취소):</p>
       <div class="grid grid-cols-2 gap-2 mb-4" id="weather-options">
-        <button onclick="toggleOption('weather', '☀️ 무더움/햇빛강함', this)" class="opt-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">☀️ 무더움 / 땡볕</button>
-        <button onclick="toggleOption('weather', '💧 습하고 꿉꿉함', this)" class="opt-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">💧 습함 / 꿉꿉함</button>
-        <button onclick="toggleOption('weather', '🍃 바람 불어 시원함', this)" class="opt-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">🍃 바람 불어 시원</button>
-        <button onclick="toggleOption('weather', '❄️ 쌀쌀함/선선함', this)" class="opt-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">❄️ 쌀쌀함 / 선선</button>
+        <button onclick="toggleWeather('☀️ 무더움/햇빛강함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">☀️ 무더움 / 땡볕</button>
+        <button onclick="toggleWeather('💧 습하고 꿉꿉함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">💧 습함 / 꿉꿉함</button>
+        <button onclick="toggleWeather('🍃 바람 불어 시원함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">🍃 바람 불어 시원</button>
+        <button onclick="toggleWeather('❄️ 쌀쌀함/선선함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">❄️ 쌀쌀함 / 선선</button>
       </div>
 
       <p class="text-xs text-slate-500 mb-2">야외활동 목적을 선택해주세요 (다시 누르면 취소):</p>
-      <div class="grid grid-cols-3 gap-2" id="activity-options">
-        <button onclick="toggleOption('activity', '🚶‍♂️ 가벼운 산책', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚶‍♂️ 산책</button>
-        <button onclick="toggleOption('activity', '🏃‍♀️ 야외 운동/러닝', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🏃‍♀️ 러닝</button>
-        <button onclick="toggleOption('activity', '☕ 야외 데이트/이동', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☕ 데이트</button>
+      <div class="grid grid-cols-2 gap-2" id="activity-options">
+        <button onclick="toggleActivity('🚶‍♂️ 산책', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚶‍♂️ 산책</button>
+        <button onclick="toggleActivity('🏃‍♀️ 러닝', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🏃‍♀️ 러닝</button>
+        <button onclick="toggleActivity('🚌 출근/등교', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚌 출근 / 등교</button>
+        <button onclick="toggleActivity('☕ 데이트', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☕ 데이트</button>
       </div>
     </section>
 
@@ -101,7 +104,6 @@
           <p id="res-tip" class="text-slate-600 leading-relaxed"></p>
         </div>
 
-        <!-- 📋 결과 복사하기 버튼 (새로 추가된 부분) -->
         <button id="copy-btn" onclick="copyResultToClipboard()" class="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium py-2.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
           <span>📋</span> 추천 결과 텍스트 복사하기
         </button>
@@ -127,36 +129,45 @@
   </main>
 
   <script>
-    let selectedWeather = '☀️ 무더움/햇빛강함';
-    let selectedActivity = '🚶‍♂️ 가벼운 산책';
+    // 날씨는 복수 선택이 가능하도록 배열로 관리
+    let selectedWeathers = [];
+    let selectedActivity = null;
     let userLocation = 'GPS 수집 중...';
 
-    function toggleOption(type, value, btn) {
-      const container = document.getElementById(`${type}-options`);
-      const buttons = container.querySelectorAll('.opt-btn');
-
+    // 날씨 토글 (복수 선택)
+    function toggleWeather(value, btn) {
       if (btn.classList.contains('selected-btn')) {
         btn.classList.remove('selected-btn');
-        if (type === 'weather') selectedWeather = null;
-        if (type === 'activity') selectedActivity = null;
+        selectedWeathers = selectedWeathers.filter(item => item !== value);
       } else {
-        buttons.forEach(b => b.classList.remove('selected-btn'));
         btn.classList.add('selected-btn');
-        if (type === 'weather') selectedWeather = value;
-        if (type === 'activity') selectedActivity = value;
+        selectedWeathers.push(value);
       }
     }
 
+    // 야외활동 토글 (단일 선택)
+    function toggleActivity(value, btn) {
+      const buttons = document.querySelectorAll('.activity-btn');
+      
+      if (btn.classList.contains('selected-btn')) {
+        btn.classList.remove('selected-btn');
+        selectedActivity = null;
+      } else {
+        buttons.forEach(b => b.classList.remove('selected-btn'));
+        btn.classList.add('selected-btn');
+        selectedActivity = value;
+      }
+    }
+
+    // 선택 초기화
     function resetSelections() {
       document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected-btn'));
-      selectedWeather = null;
+      selectedWeathers = [];
       selectedActivity = null;
       document.getElementById('ai-result').classList.add('hidden');
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      document.querySelector('#weather-options .opt-btn').classList.add('selected-btn');
-      document.querySelector('#activity-options .opt-btn').classList.add('selected-btn');
       initLocation();
     });
 
@@ -180,8 +191,8 @@
     }
 
     async function getAICoord() {
-      if (!selectedWeather || !selectedActivity) {
-        alert('날씨 상태와 야외활동 목적을 모두 선택해 주세요!');
+      if (selectedWeathers.length === 0 || !selectedActivity) {
+        alert('날씨 상태(최소 1개)와 야외활동 목적을 모두 선택해 주세요!');
         return;
       }
 
@@ -193,14 +204,16 @@
       resultBox.classList.add('hidden');
       btn.disabled = true;
 
+      const weatherCombined = selectedWeathers.join(', ');
+
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            weatherState: selectedWeather,
+            weatherState: weatherCombined,
             activityType: selectedActivity,
-            userFeeling: selectedWeather,
+            userFeeling: weatherCombined,
             location: userLocation
           })
         });
@@ -225,7 +238,6 @@
       }
     }
 
-    // 📋 결과 복사 기능 함수 (새로 추가된 JS)
     async function copyResultToClipboard() {
       const summary = document.getElementById('res-summary').innerText;
       const top = document.getElementById('res-top').innerText;
@@ -249,8 +261,6 @@
 
       try {
         await navigator.clipboard.writeText(textToCopy);
-        
-        // 버튼 텍스트 잠시 변경 피드백
         const copyBtn = document.getElementById('copy-btn');
         const originalText = copyBtn.innerHTML;
         copyBtn.innerHTML = '<span>✅</span> 클립보드에 복사되었습니다!';
@@ -261,7 +271,7 @@
           copyBtn.classList.replace('bg-emerald-600', 'bg-slate-800');
         }, 2000);
       } catch (err) {
-        alert('복사에 실패했습니다. 수동으로 텍스트를 선택해 주세요.');
+        alert('복사에 실패했습니다.');
       }
     }
 
@@ -269,7 +279,7 @@
       const mapContainer = document.getElementById('map');
       
       if (typeof kakao === 'undefined' || !kakao.maps) {
-        mapContainer.innerHTML = `<div class="p-4 text-center">📍 <strong>현재 위치:</strong><br>${userLocation}<br><br>(카카오맵 API 키 연동 시 지도가 출력됩니다)</div>`;
+        mapContainer.innerHTML = `<div class="p-4 text-center">📍 <strong>현재 위치:</strong><br>${userLocation}<br><br>(카카오맵 API 키 연동 시 실제 지도가 출력됩니다)</div>`;
         return;
       }
 
@@ -291,7 +301,7 @@
       ];
 
       shelterPositions.forEach(pos => {
-        const marker = new kakao.maps.Marker({
+        new kakao.maps.Marker({
           map: map,
           position: new kakao.maps.LatLng(pos.lat, pos.lng),
           title: pos.title
