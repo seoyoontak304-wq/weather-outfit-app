@@ -323,6 +323,97 @@
             border: 1px solid #cbd5e1;
             margin-top: 8px;
         }
+
+        /* --- 추가: Firebase 연동 사용자 의견 게시판 전용 스타일 --- */
+        .feedback-board-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.15);
+        }
+
+        .feedback-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .feedback-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .feedback-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .feedback-nickname {
+            width: 35%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            outline: none;
+            background: #fff;
+        }
+
+        .feedback-text {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            outline: none;
+            resize: none;
+            height: 60px;
+            background: #fff;
+        }
+
+        .btn-submit-feedback {
+            padding: 10px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit-feedback:hover { background: #4f46e5; }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .feedback-card-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .feedback-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .feedback-content {
+            font-size: 0.85rem;
+            color: #1e293b;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body class="input-theme">
@@ -422,10 +513,26 @@
             </div>
         </div>
 
+        <!-- 추가: Firebase 연동 의견 수렴 게시판 UI -->
+        <div class="feedback-board-section">
+            <div class="feedback-title">💬 추천 코디 한줄 의견 남기기</div>
+            <div class="feedback-form">
+                <div class="feedback-input-row">
+                    <input type="text" id="feedbackNickname" class="feedback-nickname" placeholder="닉네임" maxlength="10">
+                    <button type="button" class="btn-submit-feedback" id="btnSubmitFeedback">의견 등록</button>
+                </div>
+                <textarea id="feedbackText" class="feedback-text" placeholder="오늘 추천받은 코디에 대한 의견이나 개선 요청을 적어주세요!" maxlength="150"></textarea>
+            </div>
+            <div class="feedback-list" id="feedbackList">
+                <div style="font-size:0.8rem; color:#64748b; text-align:center; padding:10px;">등록된 의견을 불러오는 중...</div>
+            </div>
+        </div>
+
         <button type="button" class="btn-action btn-primary-reset" onclick="generateOutfit()">🔄 다시 코디하기 (다른 스타일)</button>
         <button type="button" class="btn-action btn-secondary-reset" onclick="goBack()">⚙️ 설정 다시 하기</button>
     </div>
 
+    <!-- 1. 기존 동작 스크립트 (수정 없이 그대로 보존) -->
     <script>
         let selectedLocation = "";
         let selectedWeathers = [];
@@ -608,7 +715,6 @@
             document.getElementById('resItems').innerText = chosenItem;
 
             // --- 이미지 로딩 오류 수정 부분 ---
-            // 엑박 문제 해결을 위해 검증된 이미지를 난수로 불러오거나 Picsum 패션 씨드 활용
             const randomIndex = Math.floor(Math.random() * fashionImagePool.length);
             const selectedImgUrl = fashionImagePool[randomIndex];
 
@@ -643,7 +749,6 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
             } catch (err) {
-                // CORS 제한 시 새 창으로 열어서 바로 저장 지원
                 window.open(img.src, '_blank');
             }
         }
@@ -652,6 +757,104 @@
             document.getElementById('resultScreen').classList.add('hidden');
             document.getElementById('inputScreen').classList.remove('hidden');
             document.body.className = "input-theme";
+        }
+    </script>
+
+    <!-- 2. Firebase 모듈 연동 및 실시간 게시판 모듈 스크립트 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            orderBy, 
+            onSnapshot, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // 제공받은 Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmFU8CKJeETbWujvzdRM_rfJb1A3YN68Y",
+            authDomain: "weather-outfit-85776.firebaseapp.com",
+            projectId: "weather-outfit-85776",
+            storageBucket: "weather-outfit-85776.firebasestorage.app",
+            messagingSenderId: "281248174942",
+            appId: "1:281248174942:web:e1c5b57d441473a7e335cf"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const btnSubmit = document.getElementById('btnSubmitFeedback');
+        const feedbackList = document.getElementById('feedbackList');
+
+        // 1) 의견 작성 기능
+        btnSubmit.addEventListener('click', async () => {
+            const nickname = document.getElementById('feedbackNickname').value.trim() || "익명";
+            const text = document.getElementById('feedbackText').value.trim();
+
+            if (!text) {
+                alert("의견 내용을 입력해주세요!");
+                return;
+            }
+
+            try {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = "등록 중...";
+
+                await addDoc(collection(db, "feedbacks"), {
+                    nickname: nickname,
+                    content: text,
+                    createdAt: serverTimestamp()
+                });
+
+                document.getElementById('feedbackText').value = "";
+                alert("의견이 성공적으로 등록되었습니다!");
+            } catch (error) {
+                console.error("의견 등록 실패:", error);
+                alert("등록 중 오류가 발생했습니다.");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "의견 등록";
+            }
+        });
+
+        // 2) 실시간 게시판 데이터 수신 및 바인딩
+        const q = query(collection(db, "feedbacks"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                feedbackList.innerHTML = `<div style="font-size:0.8rem; color:#64748b; text-align:center; padding:10px;">첫 번째 의견을 남겨보세요!</div>`;
+                return;
+            }
+
+            let html = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const timeStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
+                
+                html += `
+                    <div class="feedback-card-item">
+                        <div class="feedback-meta">
+                            <span>👤 ${escapeHtml(data.nickname)}</span>
+                            <span>${timeStr}</span>
+                        </div>
+                        <div class="feedback-content">${escapeHtml(data.content)}</div>
+                    </div>
+                `;
+            });
+            feedbackList.innerHTML = html;
+        });
+
+        // XSS 방지 헬퍼 함수
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
     </script>
 </body>
