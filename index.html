@@ -6,10 +6,8 @@
   <title>야외활동 쾌적 케어 AI</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- 🔑 [카카오맵 API] YOUR_KAKAO_JS_KEY 부분을 발급받으신 JavaScript 키로 교체하세요! -->
+  <!-- Kakao Maps API -->
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JS_KEY&libraries=services"></script>
-
   <style>
     .selected-btn {
       border-color: #3b82f6 !important;
@@ -27,44 +25,84 @@
       <h1 class="text-xl font-bold flex items-center gap-2">
         <span>☀️</span> OutdoorCare AI
       </h1>
-      <span class="text-xs bg-blue-500 px-2 py-1 rounded-full">실시간 쾌적 가이드</span>
+      <span class="text-xs bg-blue-500 px-2.5 py-1 rounded-full font-medium">실시간 쾌적 가이드</span>
     </div>
   </header>
 
-  <main class="max-w-md mx-auto p-4 space-y-6">
+  <main class="max-w-md mx-auto p-4 space-y-5">
 
-    <!-- 1. 날씨 및 활동 목적 선택 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-      <div class="flex justify-between items-center mb-3">
+    <!-- 1. 위치 및 날씨/느낌 선택 -->
+    <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center">
         <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-          <span>🌡️</span> 1. 현재 날씨 & 느낌 선택
+          <span>🌡️</span> 1. 현재 위치 & 날씨/느낌 선택
         </h2>
         <button onclick="resetSelections()" class="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 transition">
-          <span>🔄</span> 선택 초기화
+          <span>🔄</span> 초기화
         </button>
       </div>
-      
-      <p class="text-xs text-slate-500 mb-2">체감 날씨를 선택해주세요 (복수 선택 가능 / 다시 누르면 취소):</p>
-      <div class="grid grid-cols-2 gap-2 mb-4" id="weather-options">
-        <button onclick="toggleWeather('☀️ 무더움/햇빛강함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">☀️ 무더움 / 땡볕</button>
-        <button onclick="toggleWeather('💧 습하고 꿉꿉함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">💧 습함 / 꿉꿉함</button>
-        <button onclick="toggleWeather('🍃 바람 불어 시원함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">🍃 바람 불어 시원</button>
-        <button onclick="toggleWeather('❄️ 쌀쌀함/선선함', this)" class="opt-btn weather-btn p-2.5 text-sm border rounded-xl border-slate-200 hover:border-blue-400 transition">❄️ 쌀쌀함 / 선선</button>
+
+      <!-- 위치 선택 (필수) -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          📍 현재 위치 선택 <span class="text-red-500">(필수)</span>
+        </label>
+        <select id="location-select" onchange="handleLocationChange(this.value)" class="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 bg-white">
+          <option value="">-- 시/도를 선택해주세요 --</option>
+          <option value="서울특별시">서울특별시</option>
+          <option value="경기도">경기도</option>
+          <option value="인천광역시">인천광역시</option>
+          <option value="강원특별자치도">강원특별자치도</option>
+          <option value="충청북도">충청북도</option>
+          <option value="충청남도">충청남도</option>
+          <option value="대전광역시">대전광역시</option>
+          <option value="세종특별자치시">세종특별자치시</option>
+          <option value="전북특별자치도">전북특별자치도</option>
+          <option value="전라남도">전라남도</option>
+          <option value="광주광역시">광주광역시</option>
+          <option value="경상북도">경상북도</option>
+          <option value="경상남도">경상남도</option>
+          <option value="대구광역시">대구광역시</option>
+          <option value="울산광역시">울산광역시</option>
+          <option value="부산광역시">부산광역시</option>
+          <option value="제주특별자치도">제주특별자치도</option>
+        </select>
+        <!-- 경고 메시지 출력 위치 -->
+        <p id="warning-msg" class="hidden text-xs text-red-500 font-bold mt-1.5 animate-pulse">
+          ⚠️ 먼저 필수 항목(위치)을 선택해주세요!
+        </p>
       </div>
 
-      <p class="text-xs text-slate-500 mb-2">야외활동 목적을 선택해주세요 (다시 누르면 취소):</p>
-      <div class="grid grid-cols-2 gap-2" id="activity-options">
-        <button onclick="toggleActivity('🚶‍♂️ 산책', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚶‍♂️ 산책</button>
-        <button onclick="toggleActivity('🏃‍♀️ 러닝', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🏃‍♀️ 러닝</button>
-        <button onclick="toggleActivity('🚌 출근/등교', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚌 출근 / 등교</button>
-        <button onclick="toggleActivity('☕ 데이트', this)" class="opt-btn activity-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☕ 데이트</button>
+      <!-- 날씨/느낌 선택 (복수 선택 가능) -->
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-xs font-bold text-slate-700">날씨 & 체감 상태 (복수 선택 가능)</span>
+          <span class="text-[10px] text-slate-400">*다중 선택 지원</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2" id="weather-options">
+          <button onclick="toggleWeatherOption('☀️ 무더움/햇빛강함', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☀️ 무더움 / 땡볕</button>
+          <button onclick="toggleWeatherOption('💧 습하고 꿉꿉함', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">💧 습함 / 꿉꿉함</button>
+          <button onclick="toggleWeatherOption('🍃 바람 불어 시원함', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🍃 바람 불어 시원</button>
+          <button onclick="toggleWeatherOption('❄️ 쌀쌀함/선선함', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">❄️ 쌀쌀함 / 선선</button>
+        </div>
+      </div>
+
+      <!-- 야외 활동 목적 (선택) -->
+      <div>
+        <span class="block text-xs font-bold text-slate-700 mb-1.5">야외 활동 목적</span>
+        <div class="grid grid-cols-4 gap-1.5" id="activity-options">
+          <button onclick="toggleActivityOption('🚶‍♂️ 산책', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚶‍♂️ 산책</button>
+          <button onclick="toggleActivityOption('🏃‍♀️ 러닝', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🏃‍♀️ 러닝</button>
+          <button onclick="toggleActivityOption('💼 출근/등교', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">💼 출근/등교</button>
+          <button onclick="toggleActivityOption('☕ 데이트', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☕ 데이트</button>
+        </div>
       </div>
     </section>
 
-    <!-- 2. AI 추천받기 및 결과 -->
+    <!-- 2. AI 맞춤 코디 & 준비물 (필수) -->
     <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
       <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center gap-1.5">
-        <span>👕</span> 2. AI 맞춤 코디 & 준비물
+        <span>👕</span> 2. AI 맞춤 코디 & 준비물 <span class="text-xs font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">필수</span>
       </h2>
 
       <button id="recommend-btn" onclick="getAICoord()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex justify-center items-center gap-2">
@@ -73,12 +111,12 @@
 
       <div id="loading" class="hidden my-6 text-center">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-        <p class="text-xs text-slate-500 mt-2">AI가 최적의 코디를 조합하는 중...</p>
+        <p class="text-xs text-slate-500 mt-2">선택하신 지역 실시간 날씨와 코디를 분석하는 중...</p>
       </div>
 
       <!-- AI 추천 결과 영역 -->
       <div id="ai-result" class="hidden mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
-        <p id="res-summary" class="text-xs font-semibold text-blue-800 bg-blue-100 p-2 rounded-lg"></p>
+        <p id="res-summary" class="text-xs font-semibold text-blue-800 bg-blue-100 p-2.5 rounded-lg leading-relaxed"></p>
         
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-white p-2.5 rounded-lg border border-slate-100">
@@ -110,32 +148,50 @@
       </div>
     </section>
 
-    <!-- 3. 주변 무더위 쉼터 지도 -->
+    <!-- 3. 내 주변 무더위 쉼터 찾기 (선택) -->
     <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
       <div class="flex justify-between items-center mb-3">
         <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-          <span>🏞️</span> 3. 내 주변 무더위 쉼터
+          <span>🏞️</span> 3. 내 주변 무더위 쉼터 찾기 <span class="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">선택</span>
         </h2>
-        <button onclick="loadShelterMap()" class="text-xs text-blue-600 underline">내 위치 갱신</button>
       </div>
 
-      <p class="text-xs text-slate-500 mb-3">현재 위치 주변의 공공 쉼터 및 휴게공간입니다.</p>
-      
-      <div id="map" class="w-full h-64 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-xs text-slate-400 border border-slate-200">
-        지도를 불러오는 중입니다...
+      <p class="text-xs text-slate-500 mb-3">필요 시 위치 정보를 기반으로 근처 공공 무더위 쉼터를 확인합니다.</p>
+
+      <button id="toggle-map-btn" onclick="toggleMapSection()" class="w-full py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition flex justify-center items-center gap-1.5">
+        <span>🔍</span> 내 주변 무더위 쉼터 지도 보기
+      </button>
+
+      <!-- 지도 보이기 영역 (기본 숨김) -->
+      <div id="map-container" class="hidden mt-3 space-y-2">
+        <div id="map" class="w-full h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-xs text-slate-400 border border-slate-200">
+          지도를 불러오는 중입니다...
+        </div>
       </div>
     </section>
 
   </main>
 
   <script>
-    // 날씨는 복수 선택이 가능하도록 배열로 관리
-    let selectedWeathers = [];
-    let selectedActivity = null;
-    let userLocation = 'GPS 수집 중...';
+    let selectedLocation = '';
+    let selectedWeathers = []; // 복수 선택 배열
+    let selectedActivity = '🚶‍♂️ 산책';
 
-    // 날씨 토글 (복수 선택)
-    function toggleWeather(value, btn) {
+    // 위치 변경 시 경고창 해제
+    function handleLocationChange(val) {
+      selectedLocation = val;
+      if (val) {
+        document.getElementById('warning-msg').classList.add('hidden');
+      }
+    }
+
+    // 날씨/느낌 (복수 선택 토글)
+    function toggleWeatherOption(value, btn) {
+      if (!selectedLocation) {
+        showWarning();
+        return;
+      }
+
       if (btn.classList.contains('selected-btn')) {
         btn.classList.remove('selected-btn');
         selectedWeathers = selectedWeathers.filter(item => item !== value);
@@ -145,10 +201,14 @@
       }
     }
 
-    // 야외활동 토글 (단일 선택)
-    function toggleActivity(value, btn) {
-      const buttons = document.querySelectorAll('.activity-btn');
-      
+    // 야외활동 목적 (단일 선택 토글)
+    function toggleActivityOption(value, btn) {
+      if (!selectedLocation) {
+        showWarning();
+        return;
+      }
+
+      const buttons = document.querySelectorAll('#activity-options .opt-btn');
       if (btn.classList.contains('selected-btn')) {
         btn.classList.remove('selected-btn');
         selectedActivity = null;
@@ -159,40 +219,29 @@
       }
     }
 
-    // 선택 초기화
+    // 경고 문구 표시
+    function showWarning() {
+      const warn = document.getElementById('warning-msg');
+      warn.classList.remove('hidden');
+      document.getElementById('location-select').focus();
+    }
+
+    // 전체 선택 초기화
     function resetSelections() {
-      document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected-btn'));
+      document.getElementById('location-select').value = '';
+      selectedLocation = '';
       selectedWeathers = [];
       selectedActivity = null;
+
+      document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected-btn'));
+      document.getElementById('warning-msg').classList.add('hidden');
       document.getElementById('ai-result').classList.add('hidden');
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      initLocation();
-    });
-
-    function initLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            userLocation = `위도: ${lat.toFixed(4)}, 경도: ${lng.toFixed(4)}`;
-            renderMap(lat, lng);
-          },
-          () => {
-            userLocation = '서울시 관악구 (기본 위치)';
-            renderMap(37.4782, 126.9515);
-          }
-        );
-      } else {
-        renderMap(37.4782, 126.9515);
-      }
-    }
-
+    // AI 추천 요청
     async function getAICoord() {
-      if (selectedWeathers.length === 0 || !selectedActivity) {
-        alert('날씨 상태(최소 1개)와 야외활동 목적을 모두 선택해 주세요!');
+      if (!selectedLocation) {
+        showWarning();
         return;
       }
 
@@ -204,25 +253,22 @@
       resultBox.classList.add('hidden');
       btn.disabled = true;
 
-      const weatherCombined = selectedWeathers.join(', ');
-
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            weatherState: weatherCombined,
-            activityType: selectedActivity,
-            userFeeling: weatherCombined,
-            location: userLocation
+            location: selectedLocation,
+            weatherState: selectedWeathers.length > 0 ? selectedWeathers.join(', ') : '기본 상태',
+            activityType: selectedActivity || '일상 야외활동',
+            userFeeling: selectedWeathers.join(', ')
           })
         });
 
         const data = await response.json();
-
         if (data.error) throw new Error(data.error);
 
-        document.getElementById('res-summary').innerText = data.summary;
+        document.getElementById('res-summary').innerText = `📍 [${selectedLocation} 실시간 상태]\n${data.summary}`;
         document.getElementById('res-top').innerText = data.top;
         document.getElementById('res-bottom').innerText = data.bottom;
         document.getElementById('res-shoes').innerText = data.shoes;
@@ -238,6 +284,7 @@
       }
     }
 
+    // 📋 추천 결과 복사
     async function copyResultToClipboard() {
       const summary = document.getElementById('res-summary').innerText;
       const top = document.getElementById('res-top').innerText;
@@ -246,24 +293,22 @@
       const supplies = document.getElementById('res-supplies').innerText;
       const tip = document.getElementById('res-tip').innerText;
 
-      const textToCopy = `[☀️ OutdoorCare AI - 오늘 야외활동 코디 추천]
+      const textToCopy = `[☀️ OutdoorCare AI - 맞춤 추천]
 
-💡 한줄 요약: ${summary}
+${summary}
 
 👔 상의: ${top}
 👖 하의: ${bottom}
 👟 신발: ${shoes}
 🎒 준비물: ${supplies}
 
-📌 쾌적 Tip: ${tip}
-
-내 위치 기반 맞춤 추천받기: ${window.location.href}`;
+📌 쾌적 Tip: ${tip}`;
 
       try {
         await navigator.clipboard.writeText(textToCopy);
         const copyBtn = document.getElementById('copy-btn');
         const originalText = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<span>✅</span> 클립보드에 복사되었습니다!';
+        copyBtn.innerHTML = '<span>✅</span> 복사되었습니다!';
         copyBtn.classList.replace('bg-slate-800', 'bg-emerald-600');
 
         setTimeout(() => {
@@ -271,46 +316,52 @@
           copyBtn.classList.replace('bg-emerald-600', 'bg-slate-800');
         }, 2000);
       } catch (err) {
-        alert('복사에 실패했습니다.');
+        alert('복사 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 3번 무더위 쉼터 선택 지도 토글 기능
+    function toggleMapSection() {
+      const container = document.getElementById('map-container');
+      const btn = document.getElementById('toggle-map-btn');
+
+      if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        btn.innerText = '🙈 무더위 쉼터 지도 접기';
+        initLocation();
+      } else {
+        container.classList.add('hidden');
+        btn.innerText = '🔍 내 주변 무더위 쉼터 지도 보기';
+      }
+    }
+
+    function initLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => renderMap(pos.coords.latitude, pos.coords.longitude),
+          () => renderMap(37.5665, 126.9780) // 기본 서울 시청
+        );
+      } else {
+        renderMap(37.5665, 126.9780);
       }
     }
 
     function renderMap(lat, lng) {
       const mapContainer = document.getElementById('map');
-      
       if (typeof kakao === 'undefined' || !kakao.maps) {
-        mapContainer.innerHTML = `<div class="p-4 text-center">📍 <strong>현재 위치:</strong><br>${userLocation}<br><br>(카카오맵 API 키 연동 시 실제 지도가 출력됩니다)</div>`;
+        mapContainer.innerHTML = `<div class="p-4 text-center">📍 카카오맵 API 키 연동 시 지도가 표시됩니다.</div>`;
         return;
       }
 
-      const mapOption = {
+      const map = new kakao.maps.Map(mapContainer, {
         center: new kakao.maps.LatLng(lat, lng),
         level: 4
-      };
-      const map = new kakao.maps.Map(mapContainer, mapOption);
+      });
 
-      const myMarker = new kakao.maps.Marker({
+      new kakao.maps.Marker({
         position: new kakao.maps.LatLng(lat, lng),
         map: map
       });
-
-      const shelterPositions = [
-        { title: '중앙 공원 무더위 쉼터', lat: lat + 0.002, lng: lng + 0.001 },
-        { title: '구민회관 무더위 쉼터', lat: lat - 0.0015, lng: lng + 0.002 },
-        { title: '느티나무 공원 쉼터', lat: lat + 0.001, lng: lng - 0.002 }
-      ];
-
-      shelterPositions.forEach(pos => {
-        new kakao.maps.Marker({
-          map: map,
-          position: new kakao.maps.LatLng(pos.lat, pos.lng),
-          title: pos.title
-        });
-      });
-    }
-
-    function loadShelterMap() {
-      initLocation();
     }
   </script>
 </body>
