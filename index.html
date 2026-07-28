@@ -250,7 +250,7 @@
             backdrop-filter: blur(4px);
         }
 
-        /* 다운로드 버튼 */
+        /* 코디 공유 버튼 (다운로드 버튼에서 변경) */
         .btn-download {
             width: 100%;
             padding: 10px;
@@ -324,7 +324,7 @@
             margin-top: 8px;
         }
 
-        /* --- 추가: Firebase 연동 사용자 의견 게시판 전용 스타일 --- */
+        /* Firebase 연동 사용자 의견 게시판 스타일 */
         .feedback-board-section {
             margin-top: 24px;
             padding-top: 20px;
@@ -490,8 +490,8 @@
             <span class="image-tag" id="imageTag">📷 AI 추천 아이템 화보</span>
         </div>
 
-        <!-- 이미지 다운로드 버튼 -->
-        <button type="button" class="btn-download" onclick="downloadImage()">📥 추천 코디 이미지 다운로드하기</button>
+        <!-- 코디 공유하기 버튼 (다운로드 버튼 대체) -->
+        <button type="button" class="btn-download" onclick="shareOutfit()">🔗 코디 공유하기</button>
 
         <!-- 코디 세부 항목 정보 -->
         <div class="outfit-details">
@@ -513,7 +513,7 @@
             </div>
         </div>
 
-        <!-- 추가: Firebase 연동 의견 수렴 게시판 UI -->
+        <!-- Firebase 연동 의견 수렴 게시판 UI -->
         <div class="feedback-board-section">
             <div class="feedback-title">💬 추천 코디 한줄 의견 남기기</div>
             <div class="feedback-form">
@@ -532,27 +532,25 @@
         <button type="button" class="btn-action btn-secondary-reset" onclick="goBack()">⚙️ 설정 다시 하기</button>
     </div>
 
-    <!-- 1. 기존 동작 스크립트 (수정 없이 그대로 보존) -->
+    <!-- 1. 기존 동작 스크립트 -->
     <script>
         let selectedLocation = "";
         let selectedWeathers = [];
         let selectedPurpose = "";
 
-        // 직접 엄선한 패션 고화질 CDN 이미지 풀 (오류가 없도록 보장)
         const fashionImagePool = [
-            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80", // 여상 스타일링
-            "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&q=80", // 셔츠 및 의류
-            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=800&q=80", // 데일리 옷차림
-            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80", // 상의/원피스
-            "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80", // 아우터 자켓
-            "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80", // 운동화 및 신발
-            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80", // 반팔/상의
-            "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80", // 가죽 자켓
-            "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80", // 쇼핑 패션
-            "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80"  // 캐주얼 룩
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
+            "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&q=80",
+            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=800&q=80",
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80",
+            "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+            "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80",
+            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80",
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80",
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80"
         ];
 
-        // 1. 고정밀 GPS 위치 정보 검색
         function getLocation() {
             const resultBox = document.getElementById('locationResult');
             resultBox.innerText = "⏳ 위치 정보를 확인 중입니다...";
@@ -600,7 +598,6 @@
             }
         }
 
-        // 2. 날씨 및 체감 다중 선택 버튼
         document.querySelectorAll('#weatherGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!selectedLocation) {
@@ -623,7 +620,6 @@
             });
         });
 
-        // 3. 야외 활동 목적 단일 선택 버튼
         document.querySelectorAll('#purposeGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!selectedLocation) {
@@ -650,7 +646,6 @@
             document.getElementById(id).style.display = 'none';
         }
 
-        // 4. AI 코디 생성 및 화면 전환
         function generateOutfit() {
             if (!selectedLocation) { showError('locationError'); return; }
             if (selectedWeathers.length === 0) { showError('weatherError'); return; }
@@ -714,42 +709,45 @@
             document.getElementById('resOuter').innerText = chosenOuter;
             document.getElementById('resItems').innerText = chosenItem;
 
-            // --- 이미지 로딩 오류 수정 부분 ---
             const randomIndex = Math.floor(Math.random() * fashionImagePool.length);
             const selectedImgUrl = fashionImagePool[randomIndex];
 
             const imgElement = document.getElementById('outfitImg');
             imgElement.src = selectedImgUrl;
             
-            // 이미지 설명 업데이트
             const targetItems = [chosenTop, chosenBottom, chosenItem];
             const randomItemName = getRandomItem(targetItems);
             document.getElementById('imageTag').innerText = `📷 AI 추천: ${randomItemName}`;
 
-            // 화면 전환
             document.getElementById('inputScreen').classList.add('hidden');
             document.getElementById('resultScreen').classList.remove('hidden');
         }
 
-        // 5. 이미지 다운로드 보완 기능
-        async function downloadImage() {
-            const img = document.getElementById('outfitImg');
-            if (!img.src) return;
+        // 다운로드 함수 대체: 웹 공유 API 기능
+        async function shareOutfit() {
+            const location = document.getElementById('resLocation').innerText;
+            const top = document.getElementById('resTop').innerText;
+            const bottom = document.getElementById('resBottom').innerText;
 
-            try {
-                const response = await fetch(img.src);
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
+            const shareData = {
+                title: 'AI 맞춤 날씨 코디',
+                text: `[AI 추천 오늘 코디]\n위치: ${location}\n상의: ${top}\n하의: ${bottom}\n오늘 날씨에 딱 맞는 옷차림을 확인해보세요!`,
+                url: window.location.href
+            };
 
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = `AI_Outfit_${Date.now()}.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
-            } catch (err) {
-                window.open(img.src, '_blank');
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('공유 취소 또는 오류:', err);
+                }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert('링크가 클립보드에 복사되었습니다!');
+                } catch (err) {
+                    alert('공유하기를 지원하지 않는 브라우저입니다.');
+                }
             }
         }
 
@@ -773,7 +771,6 @@
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 제공받은 Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAmFU8CKJeETbWujvzdRM_rfJb1A3YN68Y",
             authDomain: "weather-outfit-85776.firebaseapp.com",
@@ -783,14 +780,12 @@
             appId: "1:281248174942:web:e1c5b57d441473a7e335cf"
         };
 
-        // Firebase 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const btnSubmit = document.getElementById('btnSubmitFeedback');
         const feedbackList = document.getElementById('feedbackList');
 
-        // 1) 의견 작성 기능
         btnSubmit.addEventListener('click', async () => {
             const nickname = document.getElementById('feedbackNickname').value.trim() || "익명";
             const text = document.getElementById('feedbackText').value.trim();
@@ -821,7 +816,6 @@
             }
         });
 
-        // 2) 실시간 게시판 데이터 수신 및 바인딩
         const q = query(collection(db, "feedbacks"), orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) {
@@ -847,7 +841,6 @@
             feedbackList.innerHTML = html;
         });
 
-        // XSS 방지 헬퍼 함수
         function escapeHtml(text) {
             return String(text)
                 .replace(/&/g, "&amp;")
