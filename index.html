@@ -6,8 +6,6 @@
   <title>야외활동 쾌적 케어 AI</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Kakao Maps API -->
-  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JS_KEY&libraries=services"></script>
   <style>
     .selected-btn {
       border-color: #3b82f6 !important;
@@ -43,12 +41,29 @@
       </div>
 
       <!-- 위치 선택 (필수) -->
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-          📍 현재 위치 선택 <span class="text-red-500">(필수)</span>
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-700">
+          📍 위치 설정 <span class="text-red-500">(필수)</span>
         </label>
+        
+        <!-- GPS 자동 위치 검색 버튼 -->
+        <button type="button" id="btn-current-location" onclick="getCurrentLocation()" class="w-full bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 hover:border-blue-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95">
+          <span>🎯</span> 내 GPS 현재 위치 자동 가져오기
+        </button>
+
+        <!-- 현재 위치 인식 결과 안내 -->
+        <p id="location-status" class="hidden text-xs text-emerald-600 font-bold bg-emerald-50 p-2 rounded-lg text-center">
+          <!-- 위치 텍스트 삽입 영역 -->
+        </p>
+
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-100"></div>
+          <span class="flex-shrink mx-2 text-[10px] text-slate-400">또는 직접 선택</span>
+          <div class="flex-grow border-t border-slate-100"></div>
+        </div>
+
         <select id="location-select" onchange="handleLocationChange(this.value)" class="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 bg-white">
-          <option value="">-- 시/도를 선택해주세요 --</option>
+          <option value="">-- 직접 시/도를 선택해주세요 --</option>
           <option value="서울특별시">서울특별시</option>
           <option value="경기도">경기도</option>
           <option value="인천광역시">인천광역시</option>
@@ -67,9 +82,10 @@
           <option value="부산광역시">부산광역시</option>
           <option value="제주특별자치도">제주특별자치도</option>
         </select>
+        
         <!-- 경고 메시지 출력 위치 -->
         <p id="warning-msg" class="hidden text-xs text-red-500 font-bold mt-1.5 animate-pulse">
-          ⚠️ 먼저 필수 항목(위치)을 선택해주세요!
+          ⚠️ 먼저 위치를 가져오거나 시/도를 선택해주세요!
         </p>
       </div>
 
@@ -116,7 +132,7 @@
 
       <!-- AI 추천 결과 영역 -->
       <div id="ai-result" class="hidden mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
-        <p id="res-summary" class="text-xs font-semibold text-blue-800 bg-blue-100 p-2.5 rounded-lg leading-relaxed"></p>
+        <p id="res-summary" class="text-xs font-semibold text-blue-800 bg-blue-100 p-2.5 rounded-lg leading-relaxed whitespace-pre-line"></p>
         
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-white p-2.5 rounded-lg border border-slate-100">
@@ -148,40 +164,87 @@
       </div>
     </section>
 
-    <!-- 3. 내 주변 무더위 쉼터 찾기 (선택) -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-          <span>🏞️</span> 3. 내 주변 무더위 쉼터 찾기 <span class="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">선택</span>
-        </h2>
-      </div>
-
-      <p class="text-xs text-slate-500 mb-3">필요 시 위치 정보를 기반으로 근처 공공 무더위 쉼터를 확인합니다.</p>
-
-      <button id="toggle-map-btn" onclick="toggleMapSection()" class="w-full py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition flex justify-center items-center gap-1.5">
-        <span>🔍</span> 내 주변 무더위 쉼터 지도 보기
-      </button>
-
-      <!-- 지도 보이기 영역 (기본 숨김) -->
-      <div id="map-container" class="hidden mt-3 space-y-2">
-        <div id="map" class="w-full h-60 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center text-xs text-slate-400 border border-slate-200">
-          지도를 불러오는 중입니다...
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <script>
     let selectedLocation = '';
+    let userLat = null;
+    let userLon = null;
     let selectedWeathers = []; // 복수 선택 배열
     let selectedActivity = '🚶‍♂️ 산책';
 
-    // 위치 변경 시 경고창 해제
+    // GPS 현재 위치 가져오기
+    function getCurrentLocation() {
+      const statusText = document.getElementById('location-status');
+      const btn = document.getElementById('btn-current-location');
+
+      if (!navigator.geolocation) {
+        alert('이 브라우저는 위치 서비스를 지원하지 않습니다.');
+        return;
+      }
+
+      statusText.classList.remove('hidden');
+      statusText.innerText = '📍 위치 분석 중...';
+      btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          userLat = position.coords.latitude;
+          userLon = position.coords.longitude;
+
+          try {
+            // Open-Meteo 역지오코딩 API로 좌표 -> 행정구역 명칭 변환
+            const reverseUrl = `https://api.open-meteo.com/v1/reverse?latitude=${userLat}&longitude=${userLon}&language=ko`;
+            const res = await fetch(reverseUrl);
+            const data = await res.json();
+
+            if (data.results && data.results.length > 0) {
+              const loc = data.results[0];
+              // 행정 구역 명칭 조합
+              const regionName = loc.admin1 || '';
+              const cityName = loc.name || '';
+              selectedLocation = `${regionName} ${cityName}`.trim() || '현재 위치';
+            } else {
+              selectedLocation = '현재 위치';
+            }
+
+            statusText.innerText = `✅ 선택됨: ${selectedLocation}`;
+            document.getElementById('location-select').value = ''; // 드롭다운 초기화
+            document.getElementById('warning-msg').classList.add('hidden');
+
+          } catch (err) {
+            selectedLocation = '현재 위치';
+            statusText.innerText = `✅ 위치 설정 완료 (GPS 기반)`;
+            document.getElementById('warning-msg').classList.add('hidden');
+          } finally {
+            btn.disabled = false;
+          }
+        },
+        (error) => {
+          btn.disabled = false;
+          statusText.classList.add('hidden');
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              alert('위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해 주세요.');
+              break;
+            default:
+              alert('위치 정보를 가져오는데 실패했습니다.');
+              break;
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    // 위치 직접 선택 시 처리
     function handleLocationChange(val) {
       selectedLocation = val;
+      userLat = null; // 직접 선택 시 GPS 좌표 초기화
+      userLon = null;
+
       if (val) {
         document.getElementById('warning-msg').classList.add('hidden');
+        document.getElementById('location-status').classList.add('hidden');
       }
     }
 
@@ -223,13 +286,15 @@
     function showWarning() {
       const warn = document.getElementById('warning-msg');
       warn.classList.remove('hidden');
-      document.getElementById('location-select').focus();
     }
 
     // 전체 선택 초기화
     function resetSelections() {
       document.getElementById('location-select').value = '';
+      document.getElementById('location-status').classList.add('hidden');
       selectedLocation = '';
+      userLat = null;
+      userLon = null;
       selectedWeathers = [];
       selectedActivity = null;
 
@@ -261,7 +326,8 @@
             location: selectedLocation,
             weatherState: selectedWeathers.length > 0 ? selectedWeathers.join(', ') : '기본 상태',
             activityType: selectedActivity || '일상 야외활동',
-            userFeeling: selectedWeathers.join(', ')
+            lat: userLat, // 👈 GPS 좌표 전달 (없을 경우 null)
+            lon: userLon  // 👈 GPS 좌표 전달 (없을 경우 null)
           })
         });
 
@@ -318,50 +384,6 @@ ${summary}
       } catch (err) {
         alert('복사 중 오류가 발생했습니다.');
       }
-    }
-
-    // 3번 무더위 쉼터 선택 지도 토글 기능
-    function toggleMapSection() {
-      const container = document.getElementById('map-container');
-      const btn = document.getElementById('toggle-map-btn');
-
-      if (container.classList.contains('hidden')) {
-        container.classList.remove('hidden');
-        btn.innerText = '🙈 무더위 쉼터 지도 접기';
-        initLocation();
-      } else {
-        container.classList.add('hidden');
-        btn.innerText = '🔍 내 주변 무더위 쉼터 지도 보기';
-      }
-    }
-
-    function initLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => renderMap(pos.coords.latitude, pos.coords.longitude),
-          () => renderMap(37.5665, 126.9780) // 기본 서울 시청
-        );
-      } else {
-        renderMap(37.5665, 126.9780);
-      }
-    }
-
-    function renderMap(lat, lng) {
-      const mapContainer = document.getElementById('map');
-      if (typeof kakao === 'undefined' || !kakao.maps) {
-        mapContainer.innerHTML = `<div class="p-4 text-center">📍 카카오맵 API 키 연동 시 지도가 표시됩니다.</div>`;
-        return;
-      }
-
-      const map = new kakao.maps.Map(mapContainer, {
-        center: new kakao.maps.LatLng(lat, lng),
-        level: 4
-      });
-
-      new kakao.maps.Marker({
-        position: new kakao.maps.LatLng(lat, lng),
-        map: map
-      });
     }
   </script>
 </body>
