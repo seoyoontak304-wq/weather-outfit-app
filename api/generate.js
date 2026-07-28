@@ -3,7 +3,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // 프론트엔드에서 넘겨주는 파라미터 수신
   const { location, weatherState, activityType, lat, lon } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -12,10 +11,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Open-Meteo API를 통한 정밀 기상 데이터 조회 (좌표가 없을 경우 기본 시/도 중심 좌표 매핑)
+    // 1. Open-Meteo API 기상 데이터 조회
     let weatherDetailText = "기상 데이터 실시간 조회 중";
     
-    // 주요 시/도 대표 위도/경도 기본값
     const coordsMap = {
       '서울특별시': { lat: 37.5665, lon: 126.9780 },
       '경기도': { lat: 37.2636, lon: 127.0286 },
@@ -47,40 +45,43 @@ export default async function handler(req, res) {
       const current = wData.current || {};
       const pop = wData.hourly?.precipitation_probability?.[0] || 0;
 
-      weatherDetailText = `기온: ${current.temperature_2m ?? '알 수 없음'}°C, 습도: ${current.relative_humidity_2m ?? '알 수 없음'}\%, 강수량: ${current.precipitation ?? 0}mm(강수확률 ${pop}\%), UV지수: ${current.uv_index ?? '알 수 없음'}`;
+      weatherDetailText = `기온: ${current.temperature_2m ?? '알 수 없음'}°C, 습도: ${current.relative_humidity_2m ?? '알 수 없음'}%, 강수량: ${current.precipitation ?? 0}mm(강수확률 ${pop}%), UV지수: ${current.uv_index ?? '알 수 없음'}`;
     }
 
-    // 2. Gemini API 프롬프트 (JSON 반환 규격 지정)
+    // 2. Gemini API 프롬프트
     const prompt = `
 당신은 야외활동 패션 코디 AI입니다.
-아래 지역 실시간 기상 데이터와 사용자가 선택한 느낌/활동을 바탕으로 적절한 옷차림을 추천해 주세요.
+지역 실시간 기상 데이터와 사용자가 선택한 느낌/활동을 바탕으로 옷차림을 추천해 주세요.
 
-[지역 및 기상 정보]
+[정보]
 위치: ${location || '미정'}
-실시간 기상 데이터: ${weatherDetailText}
+기상 데이터: ${weatherDetailText}
 사용자 체감 상태: ${weatherState || '없음'}
 야외활동 목적: ${activityType || '일반 야외활동'}
 
 [응답 규칙]
-오직 아래의 JSON 포맷으로만 응답하세요. 다른 설명이나 마크다운 문법(```json 등)은 작성하지 마세요.
-
+아래 JSON 구조에 맞추어 한국어로 작성하세요.
 {
-  "summary": "${location}의 실시간 기온, 습도 및 느낌 요약 (1-2문장)",
-  "top": "추천 상의 단어 및 짧은 설명",
-  "bottom": "추천 하의 단어 및 짧은 설명",
-  "shoes": "추천 신발 단어 및 짧은 설명",
-  "supplies": "필수 준비물 (단어 또는 문장)",
-  "tip": "야외활동 시 유용한 쾌적 팁 (1-2문장)"
+  "summary": "${location || '해당 지역'}의 실시간 날씨 및 체감 상태 요약 (1-2문장)",
+  "top": "추천 상의 및 짧은 이유",
+  "bottom": "추천 하의 및 짧은 이유",
+  "shoes": "추천 신발 및 짧은 이유",
+  "supplies": "필수 준비물",
+  "tip": "야외활동 쾌적 팁 (1-2문장)"
 }
     `.trim();
 
+    // 3. Gemini API 호출 (Structured Outputs 설정 추가)
     const response = await fetch(
-      `[https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=$){apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json" // 👈 순수 JSON만 반환하도록 강제
+          }
         }),
       }
     );
@@ -91,15 +92,17 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // 백틱 및 json 레이블 제거 후 JSON 파싱
-    replyText = replyText.replace(/```json/g, '').replace(/```/g, '').trim();
+    if (!replyText) {
+      return res.status(500).json({ error: 'AI 응답 데이터를 불러올 수 없습니다.' });
+    }
+
+    // 이미 순수 JSON이므로 안전하게 파싱
     const resultJson = JSON.parse(replyText);
-
     return res.status(200).json(resultJson);
 
   } catch (error) {
-    return res.status(500).json({ error: '서버 에러가 발생했습니다: ' + error.message });
+    return res.status(500).json({ error: '서버 처리 중 오류 발생: ' + error.message });
   }
 }
