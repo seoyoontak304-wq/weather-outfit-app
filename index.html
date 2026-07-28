@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 날씨 코디 추천</title>
+    <title>AI 날씨 코디 추천 & 피드백</title>
     <style>
         * {
             margin: 0;
@@ -29,14 +29,13 @@
 
         .screen {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
         }
         
         .hidden {
             display: none !important;
         }
 
-        /* 카드 메인 컨테이너 */
         .card {
             border-radius: 24px;
             padding: 28px 24px;
@@ -94,9 +93,7 @@
             transition: background 0.2s;
         }
 
-        .btn-location:hover {
-            background: #2563eb;
-        }
+        .btn-location:hover { background: #2563eb; }
 
         .select-location {
             width: 100%;
@@ -115,7 +112,6 @@
             margin-top: 2px;
         }
 
-        /* 버튼 그리드 (날씨/체감, 야외 활동) */
         .btn-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -142,7 +138,6 @@
             box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
         }
 
-        /* 경고 문구 */
         .error-msg {
             color: #ef4444;
             font-size: 0.8rem;
@@ -151,7 +146,6 @@
             display: none;
         }
 
-        /* 제출 버튼 */
         .submit-btn {
             width: 100%;
             padding: 16px;
@@ -167,31 +161,20 @@
             transition: transform 0.1s;
         }
 
-        .submit-btn:active {
-            transform: scale(0.98);
-        }
+        .submit-btn:active { transform: scale(0.98); }
 
-        /* 2. AI 코디 결과 화면 테마 설정 */
-        body.theme-bright {
-            background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
-        }
-
-        body.theme-cloudy {
-            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-        }
-
-        body.theme-rainy {
-            background: linear-gradient(135deg, #475569 0%, #334155 100%);
-        }
+        /* 결과 화면 배경 테마 */
+        body.theme-bright { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
+        body.theme-cloudy { background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); }
+        body.theme-rainy { background: linear-gradient(135deg, #475569 0%, #334155 100%); }
 
         .result-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.7);
             color: #0f172a;
         }
 
-        /* 메인 헤더 영역 */
         .weather-hero {
             text-align: center;
             margin-bottom: 20px;
@@ -216,10 +199,9 @@
             line-height: 1.1;
         }
 
-        /* 추천 이미지 노출 */
         .outfit-image-container {
             width: 100%;
-            height: 280px;
+            height: 260px;
             border-radius: 16px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -234,11 +216,11 @@
             display: block;
         }
 
-        /* 코디 설명 카드 */
         .outfit-details {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 20px;
         }
 
         .outfit-item {
@@ -271,84 +253,60 @@
             border-radius: 12px;
             font-size: 0.95rem;
             font-weight: 600;
-            margin-top: 16px;
             cursor: pointer;
             transition: 0.2s;
         }
 
-        .btn-primary-reset {
-            background: #0f172a;
-            color: white;
-        }
+        .btn-primary-reset { background: #0f172a; color: white; }
+        .btn-secondary-reset { background: transparent; color: #475569; border: 1px solid #cbd5e1; margin-top: 8px; }
 
-        .btn-secondary-reset {
-            background: transparent;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            margin-top: 8px;
-        }
-
-        /* 3. Firebase 의견 게시판 스타일 */
-        .feedback-section {
+        /* 게시판 스타일 (Firebase) */
+        .board-section {
             margin-top: 28px;
             padding-top: 20px;
-            border-top: 1px dashed #cbd5e1;
+            border-top: 2px stroke #e2e8f0;
         }
 
-        .feedback-header {
+        .board-title {
             font-size: 1rem;
             font-weight: 700;
             color: #1e293b;
             margin-bottom: 12px;
         }
 
-        .feedback-form {
+        .board-form {
             display: flex;
             flex-direction: column;
             gap: 8px;
             margin-bottom: 16px;
         }
 
-        .feedback-input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .feedback-input-group input {
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .input-nickname {
-            width: 35%;
-        }
-
-        .feedback-textarea {
+        .board-input, .board-textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
             font-size: 0.85rem;
             outline: none;
+        }
+
+        .board-textarea {
             resize: none;
             height: 60px;
         }
 
-        .btn-feedback-submit {
+        .board-btn {
             background: #2563eb;
             color: white;
             border: none;
-            border-radius: 8px;
             padding: 10px;
-            font-weight: 600;
+            border-radius: 8px;
             font-size: 0.85rem;
+            font-weight: 600;
             cursor: pointer;
         }
 
-        .feedback-list {
+        .board-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -356,14 +314,14 @@
             overflow-y: auto;
         }
 
-        .feedback-card-item {
-            background: rgba(255, 255, 255, 0.6);
+        .board-item {
+            background: #f8fafc;
             padding: 10px 12px;
             border-radius: 8px;
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            border: 1px solid #e2e8f0;
         }
 
-        .feedback-item-top {
+        .board-item-header {
             display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
@@ -371,16 +329,8 @@
             margin-bottom: 4px;
         }
 
-        .feedback-item-name {
-            font-weight: 700;
-            color: #334155;
-        }
-
-        .feedback-item-content {
-            font-size: 0.85rem;
-            color: #1e293b;
-            word-break: break-all;
-        }
+        .board-item-name { font-weight: 700; color: #334155; }
+        .board-item-content { font-size: 0.85rem; color: #1e293b; }
     </style>
 </head>
 <body class="input-theme">
@@ -389,12 +339,12 @@
     <div id="inputScreen" class="screen card input-card">
         <h1>🌤️ AI 맞춤 날씨 코디</h1>
 
-        <!-- 1) 현재 위치 선택 -->
+        <!-- 위치 선택 -->
         <div class="section-group">
             <div class="section-title">1. 현재 위치 선택 (필수)</div>
             <div class="location-box">
-                <button type="button" class="btn-location" id="btnGetLocation">📍 내 위치 바로 가져오기</button>
-                <select id="locationSelect" class="select-location">
+                <button type="button" class="btn-location" onclick="getLocation()">📍 내 위치 바로 가져오기</button>
+                <select id="locationSelect" class="select-location" onchange="onSelectLocation()">
                     <option value="">-- 시/도 직접 선택 --</option>
                     <option value="서울특별시">서울특별시</option>
                     <option value="경기도">경기도</option>
@@ -413,7 +363,7 @@
             </div>
         </div>
 
-        <!-- 2) 날씨 & 체감 상태 -->
+        <!-- 날씨 & 체감 상태 -->
         <div class="section-group">
             <div class="section-title">2. 날씨 & 체감 상태 (다중 선택 가능)</div>
             <div class="btn-grid" id="weatherGrid">
@@ -429,7 +379,7 @@
             <div id="weatherError" class="error-msg">필수항목을 먼저 선택해 주세요.</div>
         </div>
 
-        <!-- 3) 야외 활동 목적 -->
+        <!-- 야외 활동 목적 -->
         <div class="section-group">
             <div class="section-title">3. 야외 활동 목적</div>
             <div class="btn-grid" id="purposeGrid">
@@ -440,7 +390,7 @@
             <div id="purposeError" class="error-msg">필수항목을 먼저 선택해 주세요.</div>
         </div>
 
-        <button type="button" class="submit-btn" id="btnGenerate">✨ AI 옷차림 추천받기</button>
+        <button type="button" class="submit-btn" onclick="generateOutfit()">✨ AI 옷차림 추천받기</button>
     </div>
 
     <!-- 2. AI 코디 추천 결과 화면 -->
@@ -451,12 +401,10 @@
             <div id="resTemp" class="hero-temp">24°C</div>
         </div>
 
-        <!-- 이미지 추천 영역 -->
         <div class="outfit-image-container">
             <img id="outfitImg" src="" alt="AI 추천 코디 이미지">
         </div>
 
-        <!-- 코디 세부 항목 정보 -->
         <div class="outfit-details">
             <div class="outfit-item">
                 <span class="outfit-label">👕 상의</span>
@@ -476,37 +424,28 @@
             </div>
         </div>
 
-        <button type="button" class="btn-action btn-primary-reset" id="btnReGenerate">🔄 다시 코디하기 (다른 스타일)</button>
-        <button type="button" class="btn-action btn-secondary-reset" id="btnGoBack">⚙️ 설정 다시 하기</button>
+        <button type="button" class="btn-action btn-primary-reset" onclick="generateOutfit()">🔄 다시 코디하기 (다른 스타일)</button>
+        <button type="button" class="btn-action btn-secondary-reset" onclick="goBack()">⚙️ 설정 다시 하기</button>
 
-        <!-- Firebase 연동 사용자 의견 게시판 -->
-        <div class="feedback-section">
-            <div class="feedback-header">💬 사용자 코디 후기 & 의견</div>
-            <div class="feedback-form">
-                <input type="text" id="feedbackNickname" class="input-nickname" placeholder="닉네임" maxlength="10">
-                <textarea id="feedbackText" class="feedback-textarea" placeholder="이 코디에 대한 평가나 의견을 남겨주세요!"></textarea>
-                <button type="button" class="btn-feedback-submit" id="btnSubmitFeedback">의견 등록하기</button>
+        <!-- Firebase 의견 작성 게시판 -->
+        <div class="board-section">
+            <div class="board-title">💬 코디 의견 나누기</div>
+            <div class="board-form">
+                <input type="text" id="feedbackName" class="board-input" placeholder="닉네임 (예: 홍길동)">
+                <textarea id="feedbackText" class="board-textarea" placeholder="추천된 코디에 대한 의견을 남겨주세요!"></textarea>
+                <button type="button" class="board-btn" id="btnSubmitFeedback">의견 등록하기</button>
             </div>
-            <div id="feedbackList" class="feedback-list">
-                <!-- 실시간 Firebase 데이터 표출 영역 -->
+            <div id="boardList" class="board-list">
+                <!-- 게시판 목록이 여기에 동적으로 추가됨 -->
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK 모듈 로드 및 로직 실행 -->
+    <!-- Firebase SDK 모듈 및 로직 처리 -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            query, 
-            orderBy, 
-            onSnapshot, 
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 전달해주신 Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAmFU8CKJeETbWujvzdRM_rfJb1A3YN68Y",
             authDomain: "weather-outfit-85776.firebaseapp.com",
@@ -516,49 +455,108 @@
             appId: "1:281248174942:web:e1c5b57d441473a7e335cf"
         };
 
-        // Firebase 초기화 및 DB 인스턴스 생성
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // 게시판 실시간 불러오기
+        const q = query(collection(db, "feedbacks"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const boardList = document.getElementById('boardList');
+            boardList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = document.createElement('div');
+                item.className = 'board-item';
+                const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('ko-KR') : '방금 전';
+                item.innerHTML = `
+                    <div class="board-item-header">
+                        <span class="board-item-name">${data.name || '익명'}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div class="board-item-content">${data.text}</div>
+                `;
+                boardList.appendChild(item);
+            });
+        });
+
+        // 의견 등록 버튼 클릭
+        document.getElementById('btnSubmitFeedback').addEventListener('click', async () => {
+            const nameInput = document.getElementById('feedbackName');
+            const textInput = document.getElementById('feedbackText');
+
+            if (!textInput.value.trim()) {
+                alert('의견 내용을 입력해주세요.');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "feedbacks"), {
+                    name: nameInput.value.trim() || '익명',
+                    text: textInput.value.trim(),
+                    createdAt: serverTimestamp()
+                });
+                textInput.value = '';
+            } catch (e) {
+                console.error("의견 등록 실패: ", e);
+                alert("의견 등록 중 오류가 발생했습니다.");
+            }
+        });
+    </script>
+
+    <script>
         let selectedLocation = "";
         let selectedWeathers = [];
         let selectedPurpose = "";
 
-        // UI 요소
-        const btnGetLocation = document.getElementById('btnGetLocation');
-        const locationSelect = document.getElementById('locationSelect');
-        const btnGenerate = document.getElementById('btnGenerate');
-        const btnReGenerate = document.getElementById('btnReGenerate');
-        const btnGoBack = document.getElementById('btnGoBack');
-        const btnSubmitFeedback = document.getElementById('btnSubmitFeedback');
+        // 1. 고정밀 위치 파악 및 Reverse Geocoding 오류 수정
+        function getLocation() {
+            const resultDiv = document.getElementById('locationResult');
+            resultDiv.innerText = "📍 현재 위치 탐색 중...";
 
-        // 위치 가져오기
-        btnGetLocation.addEventListener('click', () => {
             if (navigator.geolocation) {
+                // enableHighAccuracy: true로 설정하여 정확도 향상
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        selectedLocation = "현재 위치 (서울특별시 마포구)";
-                        document.getElementById('locationResult').innerText = "✅ " + selectedLocation;
-                        locationSelect.value = "";
-                        hideError('locationError');
+                    async (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        
+                        try {
+                            // OpenStreetMap Nominatim을 사용하여 좌표를 행정구역명으로 오차 없이 변환
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                            const data = await response.json();
+                            
+                            let city = data.address.city || data.address.county || data.address.province || data.address.state || "현재 위치";
+                            let district = data.address.borough || data.address.suburb || data.address.quarter || "";
+                            
+                            selectedLocation = `${city} ${district}`.trim();
+                            resultDiv.innerText = "✅ " + selectedLocation;
+                            document.getElementById('locationSelect').value = "";
+                            hideError('locationError');
+                        } catch (err) {
+                            selectedLocation = "현재 위치 근처";
+                            resultDiv.innerText = "✅ " + selectedLocation;
+                            hideError('locationError');
+                        }
                     },
                     (err) => {
-                        alert("위치 접근 허용이 필요합니다. 아래 드롭다운에서 지역을 선택해 주세요.");
-                    }
+                        resultDiv.innerText = "";
+                        alert("위치 접근 허용이 필요하거나 오차가 발생했습니다. 드롭다운 목록에서 위치를 직접 선택해 주세요.");
+                    },
+                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                 );
             }
-        });
+        }
 
-        locationSelect.addEventListener('change', () => {
-            const val = locationSelect.value;
+        function onSelectLocation() {
+            const val = document.getElementById('locationSelect').value;
             if(val) {
                 selectedLocation = val;
                 document.getElementById('locationResult').innerText = "✅ " + selectedLocation;
                 hideError('locationError');
             }
-        });
+        }
 
-        // 날씨 다중 선택
+        // 2. 버튼 선택 이벤트
         document.querySelectorAll('#weatherGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!selectedLocation) {
@@ -581,7 +579,6 @@
             });
         });
 
-        // 야외 활동 선택
         document.querySelectorAll('#purposeGrid .chip-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (!selectedLocation) {
@@ -600,24 +597,10 @@
             });
         });
 
-        function showError(id) {
-            document.getElementById(id).style.display = 'block';
-        }
+        function showError(id) { document.getElementById(id).style.display = 'block'; }
+        function hideError(id) { document.getElementById(id).style.display = 'none'; }
 
-        function hideError(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        // 결과 생성
-        btnGenerate.addEventListener('click', generateOutfit);
-        btnReGenerate.addEventListener('click', generateOutfit);
-
-        btnGoBack.addEventListener('click', () => {
-            document.getElementById('resultScreen').classList.add('hidden');
-            document.getElementById('inputScreen').classList.remove('hidden');
-            document.body.className = "input-theme";
-        });
-
+        // 3. 결과 화면 생성
         function generateOutfit() {
             if (!selectedLocation) { showError('locationError'); return; }
             if (selectedWeathers.length === 0) { showError('weatherError'); return; }
@@ -656,7 +639,7 @@
                 items: ["양산 & UV 차단 선글라스", "접이식 휴대용 우산", "기능성 슬링백 & 텀블러", "볼캡 모자", "미니 크로스백"]
             };
 
-            const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const getRandomItem = (array) => array[Math.floor(Math.random() * array.length)];
 
             document.getElementById('resTop').innerText = getRandomItem(outfitsData.top);
             document.getElementById('resBottom').innerText = getRandomItem(outfitsData.bottom);
@@ -667,81 +650,10 @@
             document.getElementById('resultScreen').classList.remove('hidden');
         }
 
-        // ==========================================
-        // Firebase Firestore 의견 게시판 기능
-        // ==========================================
-
-        // 1) 의견 등록
-        btnSubmitFeedback.addEventListener('click', async () => {
-            const nicknameInput = document.getElementById('feedbackNickname');
-            const textInput = document.getElementById('feedbackText');
-
-            const nickname = nicknameInput.value.trim() || "익명";
-            const content = textInput.value.trim();
-
-            if (!content) {
-                alert("의견 내용을 입력해주세요.");
-                return;
-            }
-
-            try {
-                // 'feedbacks' 컬렉션에 데이터 추가
-                await addDoc(collection(db, "feedbacks"), {
-                    nickname: nickname,
-                    content: content,
-                    createdAt: serverTimestamp()
-                });
-
-                textInput.value = "";
-            } catch (error) {
-                console.error("의견 등록 실패:", error);
-                alert("의견을 등록하는 중 오류가 발생했습니다.");
-            }
-        });
-
-        // 2) 실시간 의견 목록 불러오기 (onSnapshot 사용)
-        const q = query(collection(db, "feedbacks"), orderBy("createdAt", "desc"));
-
-        onSnapshot(q, (snapshot) => {
-            const feedbackListEl = document.getElementById('feedbackList');
-            feedbackListEl.innerHTML = ""; // 기존 리스트 초기화
-
-            if (snapshot.empty) {
-                feedbackListEl.innerHTML = `<div style="text-align:center; font-size:0.8rem; color:#64748b; padding:10px;">첫 번째 코디 의견을 남겨보세요!</div>`;
-                return;
-            }
-
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                
-                // 날짜 포맷 변환
-                let dateStr = "방금 전";
-                if (data.createdAt) {
-                    const date = data.createdAt.toDate();
-                    dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-                }
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'feedback-card-item';
-                itemDiv.innerHTML = `
-                    <div class="feedback-item-top">
-                        <span class="feedback-item-name">${escapeHtml(data.nickname)}</span>
-                        <span>${dateStr}</span>
-                    </div>
-                    <div class="feedback-item-content">${escapeHtml(data.content)}</div>
-                `;
-                feedbackListEl.appendChild(itemDiv);
-            });
-        });
-
-        // HTML 인젝션 방지
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function goBack() {
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('inputScreen').classList.remove('hidden');
+            document.body.className = "input-theme";
         }
     </script>
 </body>
