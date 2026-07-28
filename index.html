@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Sky Weather - Dark Mode Theme</title>
+    <title>AI 날씨 코디 추천</title>
     <style>
-        /* 기본 리셋 및 폰트 설정 */
+        /* 기본 리셋 */
         * {
             margin: 0;
             padding: 0;
@@ -18,16 +18,92 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* 배경: 깊은 밤하늘 느낌의 다크 그라데이션 */
-            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%);
-            color: #ffffff;
+            background-color: #f4f6f9;
+            color: #333;
             padding: 20px;
+            transition: background 0.5s ease;
         }
 
-        /* 메인 컨테이너 (Glassmorphism 적용) */
-        .weather-card {
+        /* 화면 전환 처리 */
+        .screen {
             width: 100%;
-            max-width: 380px;
+            max-width: 420px;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* 1. 처음 화면 (기존 입력 Form 스타일) */
+        .input-card {
+            background: #ffffff;
+            padding: 32px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e1e4e8;
+        }
+
+        .input-card h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: #111;
+        }
+
+        .input-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #007aff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #007aff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 2. AI 코디 결과 화면 (요청하신 다크 테마 적용) */
+        body.dark-mode-bg {
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%);
+        }
+
+        .result-card {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -35,232 +111,206 @@
             border-radius: 24px;
             padding: 28px 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            color: #ffffff;
         }
 
-        /* 헤더 영역 */
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* 상단 날씨 & 온도 메인 헤더 */
+        .weather-hero {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             margin-bottom: 24px;
         }
 
-        .location {
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: -0.3px;
+        .hero-location {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 12px;
         }
 
-        .date {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 2px;
-        }
-
-        /* 메인 날씨 정보 */
-        .weather-main {
-            text-align: center;
-            margin: 20px 0 32px 0;
-        }
-
-        .weather-icon {
+        .hero-illustration {
             width: 80px;
             height: 80px;
-            margin: 0 auto 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin: 0 auto 8px;
         }
 
-        .temp-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .temperature {
-            font-size: 4rem;
+        .hero-temp {
+            font-size: 3.5rem;
             font-weight: 700;
             line-height: 1;
-            letter-spacing: -2px;
+            letter-spacing: -1px;
         }
 
-        .unit {
-            font-size: 1.5rem;
-            font-weight: 400;
-            margin-top: 6px;
-            margin-left: 2px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .condition {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 8px;
-            font-weight: 500;
-        }
-
-        /* 세부 날씨 정보 그리드 */
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 4px;
-        }
-
-        .detail-value {
+        .hero-condition {
             font-size: 0.95rem;
-            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 6px;
         }
 
-        /* 시간별 예보 영역 */
-        .hourly-forecast {
-            margin-top: 24px;
-        }
-
-        .section-title {
-            font-size: 0.85rem;
+        /* AI 코디 추천 상세 리스트 */
+        .outfit-section-title {
+            font-size: 0.9rem;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 12px;
-            text-transform: uppercase;
+            color: #f4a261;
+            margin-bottom: 14px;
             letter-spacing: 0.5px;
         }
 
-        .hourly-list {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-
-        .hourly-item {
+        .outfit-grid {
             display: flex;
             flex-direction: column;
+            gap: 10px;
+        }
+
+        .outfit-item {
+            display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px 10px;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 12px 16px;
             border-radius: 12px;
-            min-width: 58px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .hourly-time {
-            font-size: 0.75rem;
+        .outfit-label {
+            font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .hourly-temp {
-            font-size: 0.9rem;
+        .outfit-value {
+            font-size: 0.95rem;
             font-weight: 600;
-            margin-top: 8px;
+            color: #ffffff;
+            text-align: right;
         }
 
-        /* SVG 아이콘 간단 스타일 */
-        .icon {
-            width: 24px;
-            height: 24px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        /* 다시 하기 버튼 */
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
     </style>
 </head>
 <body>
 
-    <div class="weather-card">
-        <!-- 상단 지역 및 날짜 정보 -->
-        <div class="card-header">
-            <div>
-                <div class="location">서울, 대한민국</div>
-                <div class="date">7월 28일 화요일</div>
+    <!-- 1. 처음 접속 시 보이는 화면 (기존 원본 구조) -->
+    <div id="inputScreen" class="screen input-card">
+        <h1>AI 날씨 코디 추천</h1>
+        <p>위치와 현재 날씨 정보를 입력해주세요.</p>
+        
+        <form id="weatherForm">
+            <div class="form-group">
+                <label for="locationInput">위치 (지역)</label>
+                <input type="text" id="locationInput" placeholder="예: 서울시 마포구" required>
             </div>
-            <!-- 위치 아이콘 -->
-            <svg class="icon" viewBox="0 0 24 24" style="color: rgba(255, 255, 255, 0.8);">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-        </div>
+            
+            <div class="form-group">
+                <label for="tempInput">현재 기온 (°C)</label>
+                <input type="number" id="tempInput" placeholder="예: 24" required>
+            </div>
 
-        <!-- 메인 날씨 정보 -->
-        <div class="weather-main">
-            <div class="weather-icon">
-                <!-- 날씨 아이콘 (달 + 구름 예시) -->
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e0e1dd" stroke-width="1.5">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#f4a261" stroke="none"/>
-                    <path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z" fill="#415a77" opacity="0.9"/>
-                </svg>
+            <div class="form-group">
+                <label for="conditionInput">날씨 상태</label>
+                <input type="text" id="conditionInput" placeholder="예: 맑음, 맑고 바람 불음" required>
             </div>
-            <div class="temp-container">
-                <span class="temperature">24</span>
-                <span class="unit">°C</span>
-            </div>
-            <div class="condition">대체로 흐림</div>
-        </div>
 
-        <!-- 세부 지표 그리드 -->
-        <div class="details-grid">
-            <div class="detail-item">
-                <span class="detail-label">습도</span>
-                <span class="detail-value">68%</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">풍속</span>
-                <span class="detail-value">3.2 m/s</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">체감</span>
-                <span class="detail-value">25°C</span>
-            </div>
-        </div>
-
-        <!-- 시간별 날씨 예보 -->
-        <div class="hourly-forecast">
-            <div class="section-title">시간별 예보</div>
-            <div class="hourly-list">
-                <div class="hourly-item">
-                    <span class="hourly-time">지금</span>
-                    <svg class="icon" viewBox="0 0 24 24" stroke="#f4a261"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
-                    <span class="hourly-temp">24°</span>
-                </div>
-                <div class="hourly-item">
-                    <span class="hourly-time">14시</span>
-                    <svg class="icon" viewBox="0 0 24 24" stroke="#e0e1dd"><path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z"/></svg>
-                    <span class="hourly-temp">25°</span>
-                </div>
-                <div class="hourly-item">
-                    <span class="hourly-time">15시</span>
-                    <svg class="icon" viewBox="0 0 24 24" stroke="#e0e1dd"><path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z"/></svg>
-                    <span class="hourly-temp">25°</span>
-                </div>
-                <div class="hourly-item">
-                    <span class="hourly-time">16시</span>
-                    <svg class="icon" viewBox="0 0 24 24" stroke="#48cae4"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="16" x2="8" y2="20"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
-                    <span class="hourly-temp">22°</span>
-                </div>
-            </div>
-        </div>
+            <button type="submit" class="submit-btn">AI 코디 생성하기</button>
+        </form>
     </div>
 
+    <!-- 2. 버튼 클릭 후 나타나는 코디 추천 결과 화면 (다크 테마 적용) -->
+    <div id="resultScreen" class="screen result-card hidden">
+        <!-- 맨 상단: 메인 일러스트 + 위치 + 기온 -->
+        <div class="weather-hero">
+            <div id="displayLocation" class="hero-location">서울시 마포구</div>
+            
+            <!-- 간단 날씨 일러스트 (SVG) -->
+            <div class="hero-illustration">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="5" fill="#f4a261" stroke="none"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#f4a261" stroke-width="2"/>
+                </svg>
+            </div>
+            
+            <div class="hero-temp"><span id="displayTemp">24</span>°C</div>
+            <div id="displayCondition" class="hero-condition">맑음</div>
+        </div>
+
+        <!-- 하단: AI 코디 상세 목록 -->
+        <div class="outfit-section-title">✨ 오늘의 AI 추천 코디</div>
+        
+        <div class="outfit-grid">
+            <div class="outfit-item">
+                <span class="outfit-label">👕 상의</span>
+                <span class="outfit-value" id="recommendTop">반팔 셔츠 / 린넨 티셔츠</span>
+            </div>
+            <div class="outfit-item">
+                <span class="outfit-label">👖 하의</span>
+                <span class="outfit-value" id="recommendBottom">슬랙스 / 면바지</span>
+            </div>
+            <div class="outfit-item">
+                <span class="outfit-label">🧥 겉옷</span>
+                <span class="outfit-value" id="recommendOuter">얇은 가디건 (선택)</span>
+            </div>
+            <div class="outfit-item">
+                <span class="outfit-label">👟 신발</span>
+                <span class="outfit-value" id="recommendShoes">더비 슈즈 / 로퍼</span>
+            </div>
+            <div class="outfit-item">
+                <span class="outfit-label">🎒 추천 물품</span>
+                <span class="outfit-value" id="recommendItems">양산 / 자외선 차단제</span>
+            </div>
+        </div>
+
+        <button type="button" class="reset-btn" onclick="resetForm()">다시 입력하기</button>
+    </div>
+
+    <!-- 화면 전환 스크립트 -->
+    <script>
+        const weatherForm = document.getElementById('weatherForm');
+        const inputScreen = document.getElementById('inputScreen');
+        const resultScreen = document.getElementById('resultScreen');
+
+        weatherForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 입력값 가져오기
+            const location = document.getElementById('locationInput').value;
+            const temp = document.getElementById('tempInput').value;
+            const condition = document.getElementById('conditionInput').value;
+
+            // 결과 화면에 입력값 주입
+            document.getElementById('displayLocation').innerText = location;
+            document.getElementById('displayTemp').innerText = temp;
+            document.getElementById('displayCondition').innerText = condition;
+
+            // 화면 전환 처리
+            inputScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            document.body.classList.add('dark-mode-bg');
+        });
+
+        function resetForm() {
+            // 다시 입력하기 클릭 시 처음 화면으로 복구
+            resultScreen.classList.add('hidden');
+            inputScreen.classList.remove('hidden');
+            document.body.classList.remove('dark-mode-bg');
+        }
+    </script>
 </body>
 </html>
