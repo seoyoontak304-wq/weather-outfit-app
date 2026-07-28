@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 날씨 맞춤 옷차림 추천</title>
     <style>
-        /* 기본 리셋 */
         * {
             margin: 0;
             padding: 0;
@@ -13,21 +12,15 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* 1. 첫 화면: 파스텔톤 노란색 ~ 하늘색 그라데이션 */
         body {
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: linear-gradient(135deg, #fff3b0 0%, #cae9ff 100%);
             padding: 20px;
-            transition: background 0.5s ease;
-        }
-
-        /* --------------------------------------------------
-           1. 첫 시작 화면 (푸른색 테마)
-        -------------------------------------------------- */
-        body.step1-bg {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #ffffff;
+            transition: background 0.6s ease;
         }
 
         .screen {
@@ -39,26 +32,40 @@
             display: none !important;
         }
 
-        .card-step1 {
-            background: rgba(255, 255, 255, 0.12);
+        /* 메인 카드 스타일 */
+        .card {
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-radius: 24px;
+            padding: 28px 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        .card-step1 h1 {
+        .title {
             font-size: 1.4rem;
-            margin-bottom: 20px;
-            text-align: center;
             font-weight: 700;
+            color: #2b2d42;
+            margin-bottom: 6px;
+            text-align: center;
         }
 
-        .section-title {
+        .subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        /* 섹션 공통 */
+        .section {
+            margin-bottom: 22px;
+        }
+
+        .section-label {
             font-size: 0.95rem;
-            font-weight: 600;
+            font-weight: 700;
+            color: #333;
             margin-bottom: 10px;
             display: flex;
             align-items: center;
@@ -66,495 +73,427 @@
         }
 
         .required-badge {
-            color: #ff6b6b;
+            color: #e63946;
             font-size: 0.8rem;
-        }
-
-        /* 경고 문구 스타일 */
-        .alert-msg {
-            color: #ff4d4d;
-            background: rgba(255, 77, 77, 0.15);
-            border: 1px solid rgba(255, 77, 77, 0.3);
-            font-size: 0.85rem;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            text-align: center;
-            display: none;
-            font-weight: 600;
-        }
-
-        .section-block {
-            margin-bottom: 22px;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 14px;
-            border-radius: 14px;
         }
 
         /* 위치 선택 요소 */
         .location-btn {
             width: 100%;
             padding: 12px;
-            background: #007aff;
-            color: #fff;
+            background-color: #4a90e2;
+            color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 8px;
-            transition: 0.2s;
+            transition: background 0.2s;
         }
 
         .location-btn:hover {
-            background: #0056b3;
+            background-color: #357abd;
         }
 
-        .location-select {
+        .select-box {
             width: 100%;
             padding: 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 12px;
             font-size: 0.9rem;
             outline: none;
+            background-color: #fff;
+            color: #333;
         }
 
-        /* 선택 버튼 그리드 (날씨 및 목적) */
-        .grid-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+        /* 경고 메세지 */
+        .alert-msg {
+            color: #d90429;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* 버튼 태그 선택 스타일 */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
             gap: 8px;
         }
 
-        .chip-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #fff;
-            padding: 10px;
-            border-radius: 10px;
+        .chip {
+            padding: 9px 14px;
+            background-color: #f1f3f5;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
             font-size: 0.85rem;
+            color: #495057;
             cursor: pointer;
+            user-select: none;
             transition: all 0.2s;
-            text-align: center;
         }
 
-        .chip-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .chip.selected {
+            background-color: #333;
+            color: #fff;
+            border-color: #333;
+            font-weight: 600;
         }
 
-        .chip-btn.active {
-            background: #ffffff;
-            color: #1e3c72;
-            font-weight: 700;
-            border-color: #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-
+        /* 제출 버튼 */
         .submit-btn {
             width: 100%;
-            padding: 14px;
-            background: #34c759;
-            color: #fff;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%);
+            color: #4a4a4a;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
-            transition: 0.2s;
             margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
         }
 
-        .submit-btn:hover {
-            background: #28a745;
+        .submit-btn:active {
+            transform: scale(0.98);
         }
 
-        /* --------------------------------------------------
-           2. 두 번째 화면 (결과 다크/날씨 반응형 테마)
-        -------------------------------------------------- */
-        .card-step2 {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            padding: 24px;
-            color: #ffffff;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        /* 2. 결과 화면 스타일 */
+        .result-card {
+            text-align: center;
+            color: #fff;
+            padding: 30px 24px;
         }
+
+        /* 동적 테마 배경색 클래스들 */
+        body.theme-clear { background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%); }
+        body.theme-rain { background: linear-gradient(135deg, #4a6fa5 0%, #166088 100%); }
+        body.theme-snow { background: linear-gradient(135deg, #a8ded1 0%, #379634 100%); }
+        body.theme-cloud { background: linear-gradient(135deg, #757bc8 0%, #8e94f2 100%); }
+        body.theme-hot { background: linear-gradient(135deg, #f72585 0%, #7209b7 100%); }
+        body.theme-default { background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%); }
 
         .weather-hero {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
-        .hero-emoji {
-            font-size: 4rem;
-            line-height: 1.2;
-            margin-bottom: 4px;
+        .weather-emoji {
+            font-size: 4.5rem;
+            line-height: 1;
+            margin-bottom: 10px;
         }
 
-        .hero-location {
+        .result-location {
             font-size: 1.2rem;
             font-weight: 600;
             opacity: 0.9;
         }
 
-        .hero-temp {
-            font-size: 3.2rem;
+        .result-temp {
+            font-size: 3rem;
             font-weight: 800;
             margin: 4px 0;
-            line-height: 1;
         }
 
-        .hero-status {
-            font-size: 0.9rem;
-            opacity: 0.75;
-        }
-
-        /* AI 추천 코디 결과 */
+        /* 코디 추천 가이드 영역 */
         .outfit-container {
-            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            text-align: left;
         }
 
-        .outfit-image-wrapper {
+        .outfit-img-box {
             width: 100%;
-            height: 200px;
-            border-radius: 16px;
-            overflow: hidden;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0,0,0,0.2);
+            overflow: hidden;
+            font-size: 3.5rem;
         }
 
-        .outfit-image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .outfit-details {
+        .outfit-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .outfit-card {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .outfit-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 10px 14px;
+            border-radius: 10px;
         }
 
         .outfit-label {
             font-size: 0.85rem;
-            opacity: 0.7;
-            font-weight: 500;
+            font-weight: 600;
+            opacity: 0.8;
         }
 
-        .outfit-value {
-            font-size: 0.95rem;
-            font-weight: 600;
-            text-align: right;
+        .outfit-desc {
+            font-size: 0.9rem;
+            font-weight: 700;
         }
 
         .reset-btn {
             width: 100%;
             padding: 12px;
             background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
-            margin-top: 20px;
+            margin-top: 18px;
             cursor: pointer;
             font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .reset-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
-<body class="step1-bg">
+<body>
 
-    <!-- ==================================================
-         [1단계] 입력 및 선택 화면
-    ================================================== -->
-    <div id="step1" class="screen card-step1">
-        <h1>🌤️ AI 날씨 맞춤 옷차림</h1>
+    <!-- 1. 입력 화면 (파스텔 그라데이션) -->
+    <div id="inputScreen" class="screen card">
+        <h1 class="title">AI 날씨 코디 추천</h1>
+        <p class="subtitle">오늘의 날씨와 목적에 맞는 최적의 옷차림을 받아보세요.</p>
 
-        <!-- 경고 메시지 창 -->
-        <div id="alertMsg" class="alert-msg">필수항목을 먼저 선택해 주세요</div>
-
-        <!-- 1. 위치 선택 (필수) -->
-        <div class="section-block">
-            <div class="section-title">
-                1. 현재 위치 선택 <span class="required-badge">*필수</span>
+        <!-- 1단계: 위치 선택 (필수) -->
+        <div class="section">
+            <div class="section-label">
+                1. 현재 위치 & 날씨 체감 선택 <span class="required-badge">*필수</span>
             </div>
-            <button type="button" class="location-btn" onclick="getCurrentLocation()">📍 내 현재 위치 정보 가져오기</button>
-            <select id="citySelect" class="location-select" onchange="onLocationChange()">
-                <option value="">-- 시/도 직접 선택 --</option>
+            <button class="location-btn" type="button" onclick="getLocation()">📍 내 위치 정보 가져오기</button>
+            <select id="regionSelect" class="select-box" onchange="checkLocationSelected()">
+                <option value="">시/도 직접 선택</option>
                 <option value="서울특별시">서울특별시</option>
                 <option value="경기도">경기도</option>
                 <option value="인천광역시">인천광역시</option>
-                <option value="강원특별자치도">강원특별자치도</option>
+                <option value="강원도">강원도</option>
                 <option value="충청북도">충청북도</option>
                 <option value="충청남도">충청남도</option>
-                <option value="대전광역시">대전광역시</option>
-                <option value="세종특별자치시">세종특별자치시</option>
-                <option value="전북특별자치도">전북특별자치도</option>
+                <option value="전라북도">전라북도</option>
                 <option value="전라남도">전라남도</option>
-                <option value="광주광역시">광주광역시</option>
                 <option value="경상북도">경상북도</option>
                 <option value="경상남도">경상남도</option>
-                <option value="대구광역시">대구광역시</option>
-                <option value="울산광역시">울산광역시</option>
-                <option value="부산광역시">부산광역시</option>
                 <option value="제주특별자치도">제주특별자치도</option>
             </select>
+            <div id="locationAlert" class="alert-msg">⚠️ 필수항목을 먼저 선택해 주세요.</div>
         </div>
 
-        <!-- 2. 날씨 & 체감 상태 (중복 가능) -->
-        <div class="section-block" onclick="checkLocationGuard(event)">
-            <div class="section-title">2. 날씨 & 체감 상태 (중복 가능)</div>
-            <div class="grid-buttons" id="weatherContainer">
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">🌧️ 비</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">❄️ 눈</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">☀️ 맑음</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">☁️ 흐림</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">💧 습함/꿉꿉함</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">🍃 바람 불어 시원</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">🍂 쌀쌀함/선선</button>
-                <button type="button" class="chip-btn weather-chip" onclick="toggleWeather(this)">🔥 무더워/땡볕</button>
+        <!-- 2단계: 날씨 & 체감 상태 (중복 선택 가능) -->
+        <div class="section" onclick="validateStepAccess(event)">
+            <div class="section-label">2. 날씨 & 체감 상태 (중복 가능)</div>
+            <div class="chip-group" id="weatherChips">
+                <div class="chip" onclick="toggleChip(this)">비 🌧️</div>
+                <div class="chip" onclick="toggleChip(this)">눈 ❄️</div>
+                <div class="chip" onclick="toggleChip(this)">맑음 ☀️</div>
+                <div class="chip" onclick="toggleChip(this)">흐림 ☁️</div>
+                <div class="chip" onclick="toggleChip(this)">습함/꿉꿉함 💧</div>
+                <div class="chip" onclick="toggleChip(this)">바람 불어 시원 🍃</div>
+                <div class="chip" onclick="toggleChip(this)">쌀쌀함/선선 🍂</div>
+                <div class="chip" onclick="toggleChip(this)">무더워/땡볕 🥵</div>
             </div>
         </div>
 
-        <!-- 3. 야외 활동 목적 -->
-        <div class="section-block" onclick="checkLocationGuard(event)">
-            <div class="section-title">3. 야외 활동 목적</div>
-            <div class="grid-buttons" style="grid-template-columns: repeat(3, 1fr);" id="purposeContainer">
-                <button type="button" class="chip-btn purpose-chip" onclick="selectPurpose(this)">🚶‍♂️ 산책</button>
-                <button type="button" class="chip-btn purpose-chip" onclick="selectPurpose(this)">🏃‍♂️ 러닝</button>
-                <button type="button" class="chip-btn purpose-chip" onclick="selectPurpose(this)">💼 출근/등교</button>
+        <!-- 3단계: 야외 활동 목적 -->
+        <div class="section" onclick="validateStepAccess(event)">
+            <div class="section-label">3. 야외 활동 목적</div>
+            <div class="chip-group" id="purposeChips">
+                <div class="chip" onclick="selectSingleChip(this)">산책 🚶</div>
+                <div class="chip" onclick="selectSingleChip(this)">러닝 🏃</div>
+                <div class="chip" onclick="selectSingleChip(this)">출근/등교 💼</div>
             </div>
         </div>
 
-        <button type="button" class="submit-btn" onclick="generateRecommendation()">✨ AI 옷차림 추천받기</button>
+        <button type="button" class="submit-btn" onclick="generateOutfit()">AI 옷차림 추천받기 ✨</button>
     </div>
 
-    <!-- ==================================================
-         [2단계] AI 추천 결과 화면
-    ================================================== -->
-    <div id="step2" class="screen card-step2 hidden">
-        <!-- 메인 헤더: 날씨 이모지, 지역, 온도 -->
+    <!-- 2. 결과 화면 (날씨 맞춤 디자인 반영) -->
+    <div id="resultScreen" class="screen card result-card hidden">
         <div class="weather-hero">
-            <div id="resEmoji" class="hero-emoji">☀️</div>
-            <div id="resLocation" class="hero-location">서울특별시</div>
-            <div id="resTemp" class="hero-temp">24°C</div>
-            <div id="resStatus" class="hero-status">맑음 · 산책</div>
+            <div id="resEmoji" class="weather-emoji">☀️</div>
+            <div id="resLocation" class="result-location">서울특별시</div>
+            <div id="resTemp" class="result-temp">24°C</div>
         </div>
 
-        <!-- 코디 추천 구역 -->
         <div class="outfit-container">
-            <!-- 코디 예시 사진 -->
-            <div class="outfit-image-wrapper">
-                <img id="resImage" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80" alt="추천 코디 이미지">
+            <!-- 코디 이미지 / 일러스트 예시 박스 -->
+            <div class="outfit-img-box" id="outfitIllustration">
+                👔👖
             </div>
 
-            <!-- 세부 설명 카테고리 -->
-            <div class="outfit-details">
-                <div class="outfit-card">
+            <div class="outfit-list">
+                <div class="outfit-item">
                     <span class="outfit-label">👕 상의</span>
-                    <span class="outfit-value" id="resTop">반팔 셔츠 / 린넨 티</span>
+                    <span class="outfit-desc" id="resTop">반팔 티셔츠 / 린넨 셔츠</span>
                 </div>
-                <div class="outfit-card">
+                <div class="outfit-item">
                     <span class="outfit-label">👖 하의</span>
-                    <span class="outfit-value" id="resBottom">면바지 / 슬랙스</span>
+                    <span class="outfit-desc" id="resBottom">면바지 / 슬랙스</span>
                 </div>
-                <div class="outfit-card">
+                <div class="outfit-item">
                     <span class="outfit-label">🧥 겉옷</span>
-                    <span class="outfit-value" id="resOuter">얇은 셔츠 (선택)</span>
+                    <span class="outfit-desc" id="resOuter">얇은 가디건</span>
                 </div>
-                <div class="outfit-card">
+                <div class="outfit-item">
                     <span class="outfit-label">🎒 추천 물품</span>
-                    <span class="outfit-value" id="resItems">선글라스, 자외선차단제</span>
+                    <span class="outfit-desc" id="resItem">양산 / 자외선 차단제</span>
                 </div>
             </div>
         </div>
 
-        <button type="button" class="reset-btn" onclick="resetApp()">🔄 다시 선택하기</button>
+        <button type="button" class="reset-btn" onclick="resetPage()">다시 설정하기</button>
     </div>
 
     <script>
         let selectedLocation = "";
-        let selectedWeathers = [];
-        let selectedPurpose = "";
 
-        // 1. 위치 정보 가져오기 (GPS)
-        function getCurrentLocation() {
+        // 위치 가져오기 (GPS 버튼)
+        function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        // 위치 가져오기 성공 시 예시로 설정
-                        selectedLocation = "서울특별시 (현재 위치)";
-                        document.getElementById('citySelect').value = "";
+                        selectedLocation = "현재 위치 (GPS 확인됨)";
+                        document.getElementById('regionSelect').value = "";
                         hideAlert();
-                        alert("현재 위치 정보를 성공적으로 가져왔습니다!");
+                        alert("현재 위치 정보를 성공적으로 가져왔습니다.");
                     },
                     (error) => {
-                        alert("위치 정보를 가져올 수 없어 목록에서 선택해주세요.");
+                        alert("위치 정보를 가져올 수 없습니다. 목록에서 직접 선택해 주세요.");
                     }
                 );
             } else {
-                alert("이 브라우저에서는 위치 서비스를 지원하지 않습니다.");
+                alert("이 브라우저에서는 Geolocation을 지원하지 않습니다.");
             }
         }
 
-        // 2. 드롭다운 선택 시
-        function onLocationChange() {
-            const select = document.getElementById('citySelect');
+        // 셀렉트 박스 변경 시
+        function checkLocationSelected() {
+            const select = document.getElementById('regionSelect');
             selectedLocation = select.value;
-            if (selectedLocation) hideAlert();
-        }
-
-        // 필수 항목 가드 (위치 미선택 시 경고)
-        function checkLocationGuard(e) {
-            if (!selectedLocation) {
-                showAlert("필수항목을 먼저 선택해 주세요");
-                e.stopPropagation();
+            if (selectedLocation) {
+                hideAlert();
             }
         }
 
-        function showAlert(msg) {
-            const alertBox = document.getElementById('alertMsg');
-            alertBox.innerText = msg;
-            alertBox.style.display = 'block';
+        // 필수 항목 미선택 시 경고 노출
+        function validateStepAccess(e) {
+            if (!selectedLocation) {
+                showAlert();
+            }
+        }
+
+        function showAlert() {
+            document.getElementById('locationAlert').style.display = 'block';
         }
 
         function hideAlert() {
-            document.getElementById('alertMsg').style.display = 'none';
+            document.getElementById('locationAlert').style.display = 'none';
         }
 
-        // 날씨 토글 (중복 선택)
-        function toggleWeather(btn) {
-            if (!selectedLocation) return;
-            
-            btn.classList.toggle('active');
-            const val = btn.innerText.replace(/^[^\s]+\s/, ''); // 이모지 제거 텍스트
-            
-            if (btn.classList.contains('active')) {
-                if (!selectedWeathers.includes(val)) selectedWeathers.push(val);
-            } else {
-                selectedWeathers = selectedWeathers.filter(item => item !== val);
-            }
-        }
-
-        // 야외 활동 목적 (단일 선택)
-        function selectPurpose(btn) {
-            if (!selectedLocation) return;
-
-            document.querySelectorAll('.purpose-chip').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedPurpose = btn.innerText.replace(/^[^\s]+\s/, '');
-        }
-
-        // AI 옷차림 추천받기 클릭
-        function generateRecommendation() {
+        // 다중 선택 칩 (날씨 상태)
+        function toggleChip(element) {
             if (!selectedLocation) {
-                showAlert("필수항목을 먼저 선택해 주세요");
+                showAlert();
+                return;
+            }
+            element.classList.toggle('selected');
+        }
+
+        // 단일 선택 칩 (활동 목적)
+        function selectSingleChip(element) {
+            if (!selectedLocation) {
+                showAlert();
+                return;
+            }
+            const parent = element.parentElement;
+            parent.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        // 추천 결과 생성 및 화면 전환
+        function generateOutfit() {
+            if (!selectedLocation) {
+                showAlert();
                 return;
             }
 
-            // 결과 데이터 생성 및 배경색/이모지 처리
-            updateResultScreen();
-
-            // 화면 전환
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.remove('hidden');
-            document.body.classList.remove('step1-bg');
-        }
-
-        // 결과 화면 커스텀 로직
-        function updateResultScreen() {
-            const resLocation = document.getElementById('resLocation');
-            const resTemp = document.getElementById('resTemp');
-            const resEmoji = document.getElementById('resEmoji');
-            const resStatus = document.getElementById('resStatus');
-            const resTop = document.getElementById('resTop');
-            const resBottom = document.getElementById('resBottom');
-            const resOuter = document.getElementById('resOuter');
-            const resItems = document.getElementById('resItems');
-            const resImage = document.getElementById('resImage');
-
-            resLocation.innerText = selectedLocation;
+            // 선택된 날씨 값 추출
+            const selectedWeathers = Array.from(document.querySelectorAll('#weatherChips .chip.selected')).map(c => c.innerText);
             
-            // 상태 텍스트
-            const weatherText = selectedWeathers.length > 0 ? selectedWeathers.join(', ') : '기본 날씨';
-            const purposeText = selectedPurpose ? selectedPurpose : '일상';
-            resStatus.innerText = `${weatherText} · ${purposeText}`;
+            // UI 테마 및 메인 이모지 결정
+            let themeClass = "theme-default";
+            let emoji = "🌤️";
+            let tempStr = "22°C";
+            let top = "기본 반팔 티셔츠";
+            let bottom = "데님 팬츠 / 슬랙스";
+            let outer = "없음";
+            let item = "보조 배터리";
+            let outfitGraphic = "👕👖";
 
-            // 기본값 설정 및 조건별 배경색/이미지/아이콘 변경
-            let bgColor = "linear-gradient(135deg, #2c3e50 0%, #000000 100%)"; // 기본 다크
-            let emoji = "☀️";
-            let temp = "22°C";
-            let imgUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80";
+            const weatherStr = selectedWeathers.join(" ");
 
-            if (selectedWeathers.includes('비')) {
-                bgColor = "linear-gradient(135deg, #3a6073 0%, #16222a 100%)";
+            if (weatherStr.includes("비")) {
+                themeClass = "theme-rain";
                 emoji = "🌧️";
-                temp = "19°C";
-                imgUrl = "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=600&q=80";
-                resOuter.innerText = "방수 윈드브레이커 / 우비";
-                resItems.innerText = "3단 접이식 우산, 장화";
-            } else if (selectedWeathers.includes('무더워/땡볕')) {
-                bgColor = "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)";
-                emoji = "🔥";
-                temp = "31°C";
-                imgUrl = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=600&q=80";
-                resTop.innerText = "민소매 / 기능성 반팔";
-                resBottom.innerText = "시원한 숏팬츠 / 린넨 바지";
-                resOuter.innerText = "없음 (가벼운 옷차림)";
-                resItems.innerText = "선글라스, 양산, 얼음물";
-            } else if (selectedWeathers.includes('눈') || selectedWeathers.includes('쌀쌀함/선선')) {
-                bgColor = "linear-gradient(135deg, #83a4d4 0%, #b6fbff 100%)";
+                item = "접이식 우산 / 방수 신발";
+                outfitGraphic = "🧥☔";
+            } else if (weatherStr.includes("눈")) {
+                themeClass = "theme-snow";
                 emoji = "❄️";
-                temp = "8°C";
-                imgUrl = "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80";
-                resTop.innerText = "맨투맨 / 니트";
-                resBottom.innerText = "기모 데님 / 청바지";
-                resOuter.innerText = "트렌치코트 / 숏패딩";
-                resItems.innerText = "목도리, 핫팩";
-            } else {
-                // 맑음/바람 등 기본 세팅
-                bgColor = "linear-gradient(135deg, #1d976c 0%, #93f9b9 100%)";
-                emoji = "🌤️";
-                temp = "23°C";
-                resTop.innerText = "반팔 셔츠 / 루즈핏 티";
-                resBottom.innerText = "슬랙스 / 청바지";
-                resOuter.innerText = "얇은 가디건";
-                resItems.innerText = "자외선 차단제, 텀블러";
+                tempStr = "-2°C";
+                outer = "패딩 / 패딩 조끼";
+                item = "장갑 / 핫팩";
+                outfitGraphic = "🧥🧣";
+            } else if (weatherStr.includes("무더워") || weatherStr.includes("땡볕")) {
+                themeClass = "theme-hot";
+                emoji = "☀️";
+                tempStr = "31°C";
+                top = "민소매 / 얇은 린넨 반팔";
+                bottom = "반바지 / 통풍 팬츠";
+                item = "선글라스 / 양산";
+                outfitGraphic = "🎽🩳";
+            } else if (weatherStr.includes("맑음")) {
+                themeClass = "theme-clear";
+                emoji = "☀️";
+                tempStr = "25°C";
+            } else if (weatherStr.includes("흐림")) {
+                themeClass = "theme-cloud";
+                emoji = "☁️";
             }
 
-            document.body.style.background = bgColor;
-            resEmoji.innerText = emoji;
-            resTemp.innerText = temp;
-            resImage.src = imgUrl;
+            // 결과 데이터 반영
+            document.getElementById('resEmoji').innerText = emoji;
+            document.getElementById('resLocation').innerText = selectedLocation;
+            document.getElementById('resTemp').innerText = tempStr;
+            document.getElementById('resTop').innerText = top;
+            document.getElementById('resBottom').innerText = bottom;
+            document.getElementById('resOuter').innerText = outer;
+            document.getElementById('resItem').innerText = item;
+            document.getElementById('outfitIllustration').innerText = outfitGraphic;
+
+            // 화면 전환 및 배경 스타일 변경
+            document.body.className = themeClass;
+            document.getElementById('inputScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
         }
 
-        // 초기화 함수
-        function resetApp() {
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step1').classList.remove('hidden');
-            document.body.className = "step1-bg";
-            document.body.style.background = "";
+        // 다시 설정하기 (처음 화면으로 복구)
+        function resetPage() {
+            document.body.className = "";
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('inputScreen').classList.remove('hidden');
         }
     </script>
 </body>
