@@ -170,13 +170,35 @@
     let selectedLocation = '';
     let userLat = null;
     let userLon = null;
-    let selectedWeathers = []; // 복수 선택 배열
+    let selectedWeathers = [];
     let selectedActivity = '🚶‍♂️ 산책';
+
+    // 대한민국 시/도 매핑 목록
+    const REGIONS = [
+      "서울특별시", "경기도", "인천광역시", "강원특별자치도", "충청북도", "충청남도",
+      "대전광역시", "세종특별자치시", "전북특별자치도", "전라남도", "광주광역시",
+      "경상북도", "경상남도", "대구광역시", "울산광역시", "부산광역시", "제주특별자치도"
+    ];
+
+    // 응답 텍스트에서 시/도 명칭 정제 함수
+    function parseRegionName(adminStr, nameStr) {
+      const fullStr = `${adminStr} ${nameStr}`;
+      
+      for (const region of REGIONS) {
+        // '경기', '서울', '부산' 등 앞 2글자 매칭 확인
+        const shortName = region.substring(0, 2);
+        if (fullStr.includes(shortName)) {
+          return region;
+        }
+      }
+      return adminStr || nameStr || '경기도'; // 기본값 fallback
+    }
 
     // GPS 현재 위치 가져오기
     function getCurrentLocation() {
       const statusText = document.getElementById('location-status');
       const btn = document.getElementById('btn-current-location');
+      const selectBox = document.getElementById('location-select');
 
       if (!navigator.geolocation) {
         alert('이 브라우저는 위치 서비스를 지원하지 않습니다.');
@@ -193,28 +215,29 @@
           userLon = position.coords.longitude;
 
           try {
-            // Open-Meteo 역지오코딩 API로 좌표 -> 행정구역 명칭 변환
             const reverseUrl = `https://api.open-meteo.com/v1/reverse?latitude=${userLat}&longitude=${userLon}&language=ko`;
             const res = await fetch(reverseUrl);
             const data = await res.json();
 
             if (data.results && data.results.length > 0) {
               const loc = data.results[0];
-              // 행정 구역 명칭 조합
-              const regionName = loc.admin1 || '';
-              const cityName = loc.name || '';
-              selectedLocation = `${regionName} ${cityName}`.trim() || '현재 위치';
+              const admin1 = loc.admin1 || '';
+              const name = loc.name || '';
+              
+              // 시/도 명칭 매핑
+              selectedLocation = parseRegionName(admin1, name);
             } else {
-              selectedLocation = '현재 위치';
+              selectedLocation = '경기도';
             }
 
             statusText.innerText = `✅ 선택됨: ${selectedLocation}`;
-            document.getElementById('location-select').value = ''; // 드롭다운 초기화
+            selectBox.value = selectedLocation; // 드롭다운도 자동 선택
             document.getElementById('warning-msg').classList.add('hidden');
 
           } catch (err) {
-            selectedLocation = '현재 위치';
-            statusText.innerText = `✅ 위치 설정 완료 (GPS 기반)`;
+            selectedLocation = '경기도';
+            statusText.innerText = `✅ 선택됨: ${selectedLocation}`;
+            selectBox.value = selectedLocation;
             document.getElementById('warning-msg').classList.add('hidden');
           } finally {
             btn.disabled = false;
@@ -239,11 +262,14 @@
     // 위치 직접 선택 시 처리
     function handleLocationChange(val) {
       selectedLocation = val;
-      userLat = null; // 직접 선택 시 GPS 좌표 초기화
+      userLat = null;
       userLon = null;
 
       if (val) {
         document.getElementById('warning-msg').classList.add('hidden');
+        document.getElementById('location-status').classList.remove('hidden');
+        document.getElementById('location-status').innerText = `✅ 선택됨: ${selectedLocation}`;
+      } else {
         document.getElementById('location-status').classList.add('hidden');
       }
     }
@@ -326,8 +352,8 @@
             location: selectedLocation,
             weatherState: selectedWeathers.length > 0 ? selectedWeathers.join(', ') : '기본 상태',
             activityType: selectedActivity || '일상 야외활동',
-            lat: userLat, // 👈 GPS 좌표 전달 (없을 경우 null)
-            lon: userLon  // 👈 GPS 좌표 전달 (없을 경우 null)
+            lat: userLat,
+            lon: userLon
           })
         });
 
