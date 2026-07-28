@@ -226,6 +226,9 @@
             margin-bottom: 12px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             background: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .outfit-image-container img {
@@ -239,7 +242,7 @@
             position: absolute;
             bottom: 12px;
             left: 12px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             color: white;
             font-size: 0.75rem;
             padding: 4px 10px;
@@ -392,7 +395,7 @@
 
         <!-- 연관 패션 이미지 노출 영역 -->
         <div class="outfit-image-container">
-            <img id="outfitImg" src="" alt="AI 추천 코디 아이템 이미지" crossorigin="anonymous">
+            <img id="outfitImg" src="" alt="AI 추천 코디 아이템 이미지">
             <span class="image-tag" id="imageTag">📷 AI 추천 아이템 화보</span>
         </div>
 
@@ -427,22 +430,33 @@
         let selectedLocation = "";
         let selectedWeathers = [];
         let selectedPurpose = "";
-        let currentImageUrl = "";
 
-        // 1. 고정밀 GPS 위치 정보 검색 (IP 접속 오류 보완)
+        // 직접 엄선한 패션 고화질 CDN 이미지 풀 (오류가 없도록 보장)
+        const fashionImagePool = [
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80", // 여상 스타일링
+            "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&q=80", // 셔츠 및 의류
+            "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=800&q=80", // 데일리 옷차림
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80", // 상의/원피스
+            "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80", // 아우터 자켓
+            "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80", // 운동화 및 신발
+            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=800&q=80", // 반팔/상의
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80", // 가죽 자켓
+            "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80", // 쇼핑 패션
+            "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80"  // 캐주얼 룩
+        ];
+
+        // 1. 고정밀 GPS 위치 정보 검색
         function getLocation() {
             const resultBox = document.getElementById('locationResult');
             resultBox.innerText = "⏳ 위치 정보를 확인 중입니다...";
 
             if (navigator.geolocation) {
-                // enableHighAccuracy: true로 GPS 추적 활성화
                 navigator.geolocation.getCurrentPosition(
                     async (pos) => {
                         const lat = pos.coords.latitude;
                         const lon = pos.coords.longitude;
 
                         try {
-                            // 좌표를 카카오/OSM 오픈 지오코딩으로 실제 지역명 변환 시도
                             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
                             const data = await response.json();
                             
@@ -535,14 +549,12 @@
             if (selectedWeathers.length === 0) { showError('weatherError'); return; }
             if (!selectedPurpose) { showError('purposeError'); return; }
 
-            // 조건 판단
             const isRainy = selectedWeathers.includes('비');
             const isCloudy = selectedWeathers.includes('흐림');
             const isSnow = selectedWeathers.includes('눈');
             const isHot = selectedWeathers.includes('무더워/땡볕');
             const isCold = selectedWeathers.includes('쌀쌀함/선선');
 
-            // 동적 바탕 색상 및 이모지 설정
             document.body.className = "";
             let bgTheme = "theme-bright"; 
             let emoji = "☀️";
@@ -572,12 +584,10 @@
 
             document.body.classList.add(bgTheme);
 
-            // 데이터 표출
             document.getElementById('resEmoji').innerText = emoji;
             document.getElementById('resLocation').innerText = selectedLocation;
             document.getElementById('resTemp').innerText = defaultTemp;
 
-            // 랜덤 추천 데이터베이스
             const outfitsData = {
                 top: ["오버핏 린넨 반팔 셔츠", "캐주얼 단가라 피케 셔츠", "기능성 크루넥 티셔츠", "소프트 오버사이즈 니트", "베이직 맨투맨"],
                 bottom: ["와이드 데님 팬츠", "쿨링 버뮤다 쇼츠", "테이퍼드 슬랙스", "스트릿 조거 팬츠", "코튼 카고 팬츠"],
@@ -597,28 +607,25 @@
             document.getElementById('resOuter').innerText = chosenOuter;
             document.getElementById('resItems').innerText = chosenItem;
 
-            // --- 연관성 높은 패션 사진 연동 알고리즘 ---
-            // 추천된 의류 아이템 중 1개를 무작위 선택하여 사진 검색 키워드로 사용
-            const fashionKeywords = ["linen shirt", "denim pants", "cardigan", "sneakers", "cap", "sunglasses", "t-shirt", "jacket", "shorts", "runner outfit"];
-            const selectedKeyword = fashionKeywords[Math.floor(Math.random() * fashionKeywords.length)];
+            // --- 이미지 로딩 오류 수정 부분 ---
+            // 엑박 문제 해결을 위해 검증된 이미지를 난수로 불러오거나 Picsum 패션 씨드 활용
+            const randomIndex = Math.floor(Math.random() * fashionImagePool.length);
+            const selectedImgUrl = fashionImagePool[randomIndex];
 
-            // 항상 다른 이미지를 노출하도록 난수 및 시드값 조합
-            const randomSig = Date.now() + Math.floor(Math.random() * 1000);
-            currentImageUrl = `https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800&sig=${randomSig}`;
-            
-            // Unsplash Source API 적용
             const imgElement = document.getElementById('outfitImg');
-            imgElement.src = `https://source.unsplash.com/featured/600x800/?fashion,${selectedKeyword}&sig=${randomSig}`;
+            imgElement.src = selectedImgUrl;
             
-            // 태그 문구 업데이트
-            document.getElementById('imageTag').innerText = `📷 AI 추천 아이템: ${selectedKeyword}`;
+            // 이미지 설명 업데이트
+            const targetItems = [chosenTop, chosenBottom, chosenItem];
+            const randomItemName = getRandomItem(targetItems);
+            document.getElementById('imageTag').innerText = `📷 AI 추천: ${randomItemName}`;
 
             // 화면 전환
             document.getElementById('inputScreen').classList.add('hidden');
             document.getElementById('resultScreen').classList.remove('hidden');
         }
 
-        // 5. 추천 코디 이미지 바로 다운로드하기 기능
+        // 5. 이미지 다운로드 보완 기능
         async function downloadImage() {
             const img = document.getElementById('outfitImg');
             if (!img.src) return;
@@ -636,7 +643,7 @@
                 document.body.removeChild(link);
                 URL.revokeObjectURL(blobUrl);
             } catch (err) {
-                // 크로스 오리진 제한 시 창으로 직접 열어 저장 유도
+                // CORS 제한 시 새 창으로 열어서 바로 저장 지원
                 window.open(img.src, '_blank');
             }
         }
