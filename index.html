@@ -1,245 +1,266 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>야외활동 쾌적 케어 AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .selected-btn {
-      border-color: #3b82f6 !important;
-      background-color: #eff6ff !important;
-      color: #1d4ed8 !important;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
-
-  <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
-    <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-      <h1 class="text-lg font-bold flex items-center gap-1.5 text-blue-600">
-        <span>☀️</span> OutdoorCare AI
-      </h1>
-      <span class="text-[10px] bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">맞춤 옷차림 추천</span>
-    </div>
-  </header>
-
-  <main class="max-w-md mx-auto p-4 space-y-5">
-    <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-          <span>🌡️</span> 현재 위치 & 체감 선택
-        </h2>
-        <button onclick="resetSelections()" class="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 transition">
-          <span>🔄</span> 초기화
-        </button>
-      </div>
-
-      <!-- 위치 선택 -->
-      <div class="space-y-2">
-        <label class="block text-xs font-bold text-slate-700">📍 위치 설정 <span class="text-red-500">(필수)</span></label>
-        <button type="button" id="btn-current-location" onclick="getCurrentLocation()" class="w-full bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 hover:border-blue-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 active:scale-95">
-          <span>🎯</span> 내 GPS 현재 위치 자동 가져오기
-        </button>
-        <p id="location-status" class="hidden text-xs text-emerald-600 font-bold bg-emerald-50 p-2 rounded-lg text-center"></p>
-
-        <div class="relative flex py-1 items-center">
-          <div class="flex-grow border-t border-slate-100"></div>
-          <span class="flex-shrink mx-2 text-[10px] text-slate-400">또는 직접 선택</span>
-          <div class="flex-grow border-t border-slate-100"></div>
-        </div>
-
-        <select id="location-select" onchange="handleLocationChange(this.value)" class="w-full p-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 bg-white">
-          <option value="">-- 직접 시/도를 선택해주세요 --</option>
-          <option value="서울특별시">서울특별시</option>
-          <option value="경기도">경기도</option>
-          <option value="인천광역시">인천광역시</option>
-          <option value="강원특별자치도">강원특별자치도</option>
-          <option value="충청북도">충청북도</option>
-          <option value="충청남도">충청남도</option>
-          <option value="대전광역시">대전광역시</option>
-          <option value="세종특별자치시">세종특별자치시</option>
-          <option value="전북특별자치도">전북특별자치도</option>
-          <option value="전라남도">전라남도</option>
-          <option value="광주광역시">광주광역시</option>
-          <option value="경상북도">경상북도</option>
-          <option value="경상남도">경상남도</option>
-          <option value="대구광역시">대구광역시</option>
-          <option value="울산광역시">울산광역시</option>
-          <option value="부산광역시">부산광역시</option>
-          <option value="제주특별자치도">제주특별자치도</option>
-        </select>
-        <p id="warning-msg" class="hidden text-xs text-red-500 font-bold mt-1.5 animate-pulse">
-          ⚠️ 위치를 설정하거나 선택해주세요!
-        </p>
-      </div>
-
-      <!-- 8가지 날씨/느낌 선택 버튼 -->
-      <div>
-        <span class="text-xs font-bold text-slate-700 block mb-1.5">날씨 & 체감 상태 (다중 선택 가능)</span>
-        <div class="grid grid-cols-2 gap-2" id="weather-options">
-          <button onclick="toggleWeatherOption('🌧️ 비', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">🌧️ 비</button>
-          <button onclick="toggleWeatherOption('❄️ 눈', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">❄️ 눈</button>
-          <button onclick="toggleWeatherOption('☀️ 맑음', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">☀️ 맑음</button>
-          <button onclick="toggleWeatherOption('☁️ 흐림', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">☁️ 흐림</button>
-          <button onclick="toggleWeatherOption('💧 습함/꿉꿉함', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">💧 습함/꿉꿉함</button>
-          <button onclick="toggleWeatherOption('🍃 바람 불어 시원', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">🍃 바람 불어 시원</button>
-          <button onclick="toggleWeatherOption('🍂 쌀쌀함/선선', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">🍂 쌀쌀함/선선</button>
-          <button onclick="toggleWeatherOption('🔥 무더움/땡볕', this)" class="opt-btn p-2.5 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition text-left">🔥 무더움/땡볕</button>
-        </div>
-      </div>
-
-      <!-- 야외 활동 목적 -->
-      <div>
-        <span class="text-xs font-bold text-slate-700 block mb-1.5">야외 활동 목적</span>
-        <div class="grid grid-cols-4 gap-1.5" id="activity-options">
-          <button onclick="toggleActivityOption('🚶‍♂️ 산책', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🚶‍♂️ 산책</button>
-          <button onclick="toggleActivityOption('🏃‍♀️ 러닝', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">🏃‍♀️ 러닝</button>
-          <button onclick="toggleActivityOption('💼 출근', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">💼 출근</button>
-          <button onclick="toggleActivityOption('☕ 데이트', this)" class="opt-btn p-2 text-xs border rounded-xl border-slate-200 hover:border-blue-400 transition">☕ 데이트</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 추천 결과 영역 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-      <button id="recommend-btn" onclick="getAICoord()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex justify-center items-center gap-2">
-        <span>✨</span> AI 옷차림 추천받기
-      </button>
-
-      <div id="loading" class="hidden my-6 text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-        <p class="text-xs text-slate-500 mt-2">선택하신 날씨 분석 중...</p>
-      </div>
-
-      <div id="ai-result" class="hidden mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
-        <p id="res-summary" class="text-xs font-semibold text-blue-800 bg-blue-100 p-2.5 rounded-lg leading-relaxed whitespace-pre-line"></p>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-white p-2.5 rounded-lg border border-slate-100"><span class="text-slate-400 block mb-0.5">👔 상의</span><span id="res-top" class="font-bold text-slate-700"></span></div>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-100"><span class="text-slate-400 block mb-0.5">👖 하의</span><span id="res-bottom" class="font-bold text-slate-700"></span></div>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-100"><span class="text-slate-400 block mb-0.5">👟 신발</span><span id="res-shoes" class="font-bold text-slate-700"></span></div>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-100"><span class="text-slate-400 block mb-0.5">🎒 필수 준비물</span><span id="res-supplies" class="font-bold text-blue-600"></span></div>
-        </div>
-        <div class="bg-white p-3 rounded-lg border border-slate-100 text-xs">
-          <span class="font-bold text-amber-600 block mb-1">💡 쾌적 Tip</span>
-          <p id="res-tip" class="text-slate-600 leading-relaxed"></p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    let selectedLocation = '';
-    let userLat = null, userLon = null;
-    let selectedWeathers = [];
-    let selectedActivity = '🚶‍♂️ 산책';
-
-    const REGIONS = ["서울특별시", "경기도", "인천광역시", "강원특별자치도", "충청북도", "충청남도", "대전광역시", "세종특별자치시", "전북특별자치도", "전라남도", "광주광역시", "경상북도", "경상남도", "대구광역시", "울산광역시", "부산광역시", "제주특별자치도"];
-
-    function parseRegionName(adminStr, nameStr) {
-      const fullStr = `${adminStr} ${nameStr}`;
-      for (const region of REGIONS) {
-        if (fullStr.includes(region.substring(0, 2))) return region;
-      }
-      return adminStr || nameStr || '경기도';
-    }
-
-    function getCurrentLocation() {
-      const statusText = document.getElementById('location-status');
-      const btn = document.getElementById('btn-current-location');
-      const selectBox = document.getElementById('location-select');
-
-      if (!navigator.geolocation) return alert('위치 서비스 미지원 브라우저입니다.');
-
-      statusText.classList.remove('hidden');
-      statusText.innerText = '📍 위치 분석 중...';
-      btn.disabled = true;
-
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        userLat = pos.coords.latitude;
-        userLon = pos.coords.longitude;
-        try {
-          const res = await fetch(`https://api.open-meteo.com/v1/reverse?latitude=${userLat}&longitude=${userLon}&language=ko`);
-          const data = await res.json();
-          selectedLocation = (data.results && data.results.length > 0) ? parseRegionName(data.results[0].admin1, data.results[0].name) : '경기도';
-        } catch {
-          selectedLocation = '경기도';
-        } finally {
-          statusText.innerText = `✅ 선택됨: ${selectedLocation}`;
-          selectBox.value = selectedLocation;
-          document.getElementById('warning-msg').classList.add('hidden');
-          btn.disabled = false;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Sky Weather - Dark Mode Theme</title>
+    <style>
+        /* 기본 리셋 및 폰트 설정 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-      }, () => {
-        btn.disabled = false;
-        alert('위치 정보를 가져올 수 없습니다.');
-      });
-    }
 
-    function handleLocationChange(val) {
-      selectedLocation = val;
-      if (val) {
-        document.getElementById('warning-msg').classList.add('hidden');
-        document.getElementById('location-status').classList.remove('hidden');
-        document.getElementById('location-status').innerText = `✅ 선택됨: ${selectedLocation}`;
-      }
-    }
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 배경: 깊은 밤하늘 느낌의 다크 그라데이션 */
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #415a77 100%);
+            color: #ffffff;
+            padding: 20px;
+        }
 
-    function toggleWeatherOption(value, btn) {
-      if (!selectedLocation) return showWarning();
-      btn.classList.toggle('selected-btn');
-      if (selectedWeathers.includes(value)) {
-        selectedWeathers = selectedWeathers.filter(i => i !== value);
-      } else {
-        selectedWeathers.push(value);
-      }
-    }
+        /* 메인 컨테이너 (Glassmorphism 적용) */
+        .weather-card {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 28px 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
 
-    function toggleActivityOption(value, btn) {
-      if (!selectedLocation) return showWarning();
-      document.querySelectorAll('#activity-options .opt-btn').forEach(b => b.classList.remove('selected-btn'));
-      btn.classList.add('selected-btn');
-      selectedActivity = value;
-    }
+        /* 헤더 영역 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
 
-    function showWarning() {
-      document.getElementById('warning-msg').classList.remove('hidden');
-    }
+        .location {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
 
-    function resetSelections() {
-      document.getElementById('location-select').value = '';
-      document.getElementById('location-status').classList.add('hidden');
-      selectedLocation = '';
-      selectedWeathers = [];
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected-btn'));
-      document.getElementById('ai-result').classList.add('hidden');
-    }
+        .date {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 2px;
+        }
 
-    // 서버 호출 대신 로컬 브라우저에서 바로 추천 데이터를 가공하여 보여줍니다.
-    function getAICoord() {
-      if (!selectedLocation) return showWarning();
-      const loading = document.getElementById('loading');
-      const resultBox = document.getElementById('ai-result');
-      
-      loading.classList.remove('hidden');
-      resultBox.classList.add('hidden');
+        /* 메인 날씨 정보 */
+        .weather-main {
+            text-align: center;
+            margin: 20px 0 32px 0;
+        }
 
-      setTimeout(() => {
-        const weatherStr = selectedWeathers.join(', ') || '기본 날씨';
-        
-        document.getElementById('res-summary').innerText = `📍 [${selectedLocation} 실시간]\n${selectedLocation}은(는) 현재 '${weatherStr}' 상태로 느껴지며, ${selectedActivity} 활동에 맞춰 추천해 드립니다.`;
-        document.getElementById('res-top').innerText = '통풍이 잘되는 반팔 티셔츠 또는 리넨 셔츠';
-        document.getElementById('res-bottom').innerText = '얇은 슬랙스 또는 반바지';
-        document.getElementById('res-shoes').innerText = '통기성이 좋은 러닝화/스니커즈';
-        document.getElementById('res-supplies').innerText = '양우산, 휴대용 선풍기, 자외선 차단제';
-        document.getElementById('res-tip').innerText = '수분 섭취를 자주 해주시고 급작스러운 날씨 변화에 유의하세요.';
+        .weather-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        loading.classList.add('hidden');
-        resultBox.classList.remove('hidden');
-      }, 600);
-    }
-  </script>
+        .temp-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .temperature {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .unit {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-top: 6px;
+            margin-left: 2px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .condition {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* 세부 날씨 정보 그리드 */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* 시간별 예보 영역 */
+        .hourly-forecast {
+            margin-top: 24px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hourly-list {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .hourly-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 10px;
+            border-radius: 12px;
+            min-width: 58px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hourly-time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+        }
+
+        .hourly-temp {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        /* SVG 아이콘 간단 스타일 */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="weather-card">
+        <!-- 상단 지역 및 날짜 정보 -->
+        <div class="card-header">
+            <div>
+                <div class="location">서울, 대한민국</div>
+                <div class="date">7월 28일 화요일</div>
+            </div>
+            <!-- 위치 아이콘 -->
+            <svg class="icon" viewBox="0 0 24 24" style="color: rgba(255, 255, 255, 0.8);">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+        </div>
+
+        <!-- 메인 날씨 정보 -->
+        <div class="weather-main">
+            <div class="weather-icon">
+                <!-- 날씨 아이콘 (달 + 구름 예시) -->
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#e0e1dd" stroke-width="1.5">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#f4a261" stroke="none"/>
+                    <path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z" fill="#415a77" opacity="0.9"/>
+                </svg>
+            </div>
+            <div class="temp-container">
+                <span class="temperature">24</span>
+                <span class="unit">°C</span>
+            </div>
+            <div class="condition">대체로 흐림</div>
+        </div>
+
+        <!-- 세부 지표 그리드 -->
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-label">습도</span>
+                <span class="detail-value">68%</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">풍속</span>
+                <span class="detail-value">3.2 m/s</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">체감</span>
+                <span class="detail-value">25°C</span>
+            </div>
+        </div>
+
+        <!-- 시간별 날씨 예보 -->
+        <div class="hourly-forecast">
+            <div class="section-title">시간별 예보</div>
+            <div class="hourly-list">
+                <div class="hourly-item">
+                    <span class="hourly-time">지금</span>
+                    <svg class="icon" viewBox="0 0 24 24" stroke="#f4a261"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+                    <span class="hourly-temp">24°</span>
+                </div>
+                <div class="hourly-item">
+                    <span class="hourly-time">14시</span>
+                    <svg class="icon" viewBox="0 0 24 24" stroke="#e0e1dd"><path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z"/></svg>
+                    <span class="hourly-temp">25°</span>
+                </div>
+                <div class="hourly-item">
+                    <span class="hourly-time">15시</span>
+                    <svg class="icon" viewBox="0 0 24 24" stroke="#e0e1dd"><path d="M17.5 19H9a5 5 0 0 1 0-10 6 6 0 0 1 11.5 2.5A3.5 3.5 0 0 1 17.5 19z"/></svg>
+                    <span class="hourly-temp">25°</span>
+                </div>
+                <div class="hourly-item">
+                    <span class="hourly-time">16시</span>
+                    <svg class="icon" viewBox="0 0 24 24" stroke="#48cae4"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="16" x2="8" y2="20"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+                    <span class="hourly-temp">22°</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
