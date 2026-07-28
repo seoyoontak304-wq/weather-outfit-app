@@ -3,7 +3,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { locationName, lat, lon, targetReportSummary } = req.body;
+  // 프론트엔드에서 넘겨주는 파라미터 수신
+  const { location, weatherState, activityType, lat, lon } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -11,70 +12,70 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Open-Meteo API를 통한 정밀 기상 데이터 조회
-    let weatherDetailText = "기상 데이터 조회 불가";
-    if (lat && lon) {
-      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,uv_index&hourly=precipitation_probability&forecast_days=1`;
-      const weatherRes = await fetch(weatherUrl);
-      
-      if (weatherRes.ok) {
-        const wData = await weatherRes.json();
-        const current = wData.current || {};
-        const pop = wData.hourly?.precipitation_probability?.[0] || 0;
-        
-        weatherDetailText = `
-기온: ${current.temperature_2m ?? '알 수 없음'}°C
-상대 습도: ${current.relative_humidity_2m ?? '알 수 없음'}%
-강수량: ${current.precipitation ?? 0}mm (강수 확률: ${pop}%)
-UV 지수: ${current.uv_index ?? '알 수 없음'}
-        `.trim();
-      }
+    // 1. Open-Meteo API를 통한 정밀 기상 데이터 조회 (좌표가 없을 경우 기본 시/도 중심 좌표 매핑)
+    let weatherDetailText = "기상 데이터 실시간 조회 중";
+    
+    // 주요 시/도 대표 위도/경도 기본값
+    const coordsMap = {
+      '서울특별시': { lat: 37.5665, lon: 126.9780 },
+      '경기도': { lat: 37.2636, lon: 127.0286 },
+      '인천광역시': { lat: 37.4563, lon: 126.7052 },
+      '강원특별자치도': { lat: 37.8854, lon: 127.7298 },
+      '충청북도': { lat: 36.6372, lon: 127.4897 },
+      '충청남도': { lat: 36.6588, lon: 126.6728 },
+      '대전광역시': { lat: 36.3504, lon: 127.3845 },
+      '세종특별자치시': { lat: 36.4800, lon: 127.2890 },
+      '전북특별자치도': { lat: 35.8242, lon: 127.1480 },
+      '전라남도': { lat: 34.8161, lon: 126.4629 },
+      '광주광역시': { lat: 35.1595, lon: 126.8526 },
+      '경상북도': { lat: 36.5760, lon: 128.5056 },
+      '경상남도': { lat: 35.2383, lon: 128.6925 },
+      '대구광역시': { lat: 35.8714, lon: 128.6014 },
+      '울산광역시': { lat: 35.5384, lon: 129.3114 },
+      '부산광역시': { lat: 35.1796, lon: 129.0756 },
+      '제주특별자치도': { lat: 33.4996, lon: 126.5312 }
+    };
+
+    const targetLat = lat || (coordsMap[location]?.lat) || 37.5665;
+    const targetLon = lon || (coordsMap[location]?.lon) || 126.9780;
+
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${targetLat}&longitude=${targetLon}&current=temperature_2m,relative_humidity_2m,precipitation,uv_index&hourly=precipitation_probability&forecast_days=1`;
+    const weatherRes = await fetch(weatherUrl);
+
+    if (weatherRes.ok) {
+      const wData = await weatherRes.json();
+      const current = wData.current || {};
+      const pop = wData.hourly?.precipitation_probability?.[0] || 0;
+
+      weatherDetailText = `기온: ${current.temperature_2m ?? '알 수 없음'}°C, 습도: ${current.relative_humidity_2m ?? '알 수 없음'}\%, 강수량: ${current.precipitation ?? 0}mm(강수확률 ${pop}\%), UV지수: ${current.uv_index ?? '알 수 없음'}`;
     }
 
-    // 2. 제보 요약 정보 유무에 따른 프롬프트 구성
-    let reportPrompt = "";
-    if (targetReportSummary) {
-      reportPrompt = `
-[선택한 목적지 현장 제보 요약]
-${targetReportSummary}
-* 정밀 기상 데이터와 해당 지역 현장 제보 요약을 함께 종합적으로 고려하여 옷차림을 추천하세요.
-      `.trim();
-    } else {
-      reportPrompt = `
-[선택한 목적지 현장 제보 정보]
-해당 지역에 등록된 오늘자 현장 제보가 없습니다.
-* 정밀 기상 데이터(기온, 습도, 강수량, UV 지수)만을 바탕으로 가장 적절한 옷차림을 추천하세요.
-      `.trim();
-    }
-
-    // 3. Gemini API 프롬프트 (단어:설명 형식 강제)
+    // 2. Gemini API 프롬프트 (JSON 반환 규격 지정)
     const prompt = `
-당신은 패션 코디 AI입니다.
-선택한 지역의 기상 데이터와 현장 제보 요약(있는 경우)을 바탕으로 옷차림을 추천해주세요.
+당신은 야외활동 패션 코디 AI입니다.
+아래 지역 실시간 기상 데이터와 사용자가 선택한 느낌/활동을 바탕으로 적절한 옷차림을 추천해 주세요.
 
-[목적지 정보]
-위치: ${locationName}
+[지역 및 기상 정보]
+위치: ${location || '미정'}
+실시간 기상 데이터: ${weatherDetailText}
+사용자 체감 상태: ${weatherState || '없음'}
+야외활동 목적: ${activityType || '일반 야외활동'}
 
-[목적지 기상 데이터]
-${weatherDetailText}
+[응답 규칙]
+오직 아래의 JSON 포맷으로만 응답하세요. 다른 설명이나 마크다운 문법(```json 등)은 작성하지 마세요.
 
-${reportPrompt}
-
-[반드시 지켜야 할 작성 규칙]
-1. 특수문자(*, #, @, -, _, ~ 등 마크다운 기호)를 절대로 사용하지 마세요.
-2. 각 항목은 오직 '단어:설명' 형태로만 작성하세요. 콜론(:) 앞에는 단어/카테고리만 위치해야 합니다.
-3. 이모티콘(👕, 👖, ☀️, ☂️ 등)은 자유롭게 사용하여 보기 편하고 깔끔하게 작성하세요.
-4. 예시 형식:
-날씨 요약: 기온은 22도이고 습도가 높아 다소 꿉꿉할 수 있습니다.
-상의: 통풍이 잘 되는 반팔 티셔츠를 추천합니다.
-하의: 얇은 면바지나 슬랙스가 적당합니다.
-아우터: 얇은 가디건을 챙기시면 좋습니다.
-신발: 편안한 스니커즈를 착용하세요.
-소지품: 접이식 우산과 선글라스를 준비하세요.
-    `;
+{
+  "summary": "${location}의 실시간 기온, 습도 및 느낌 요약 (1-2문장)",
+  "top": "추천 상의 단어 및 짧은 설명",
+  "bottom": "추천 하의 단어 및 짧은 설명",
+  "shoes": "추천 신발 단어 및 짧은 설명",
+  "supplies": "필수 준비물 (단어 또는 문장)",
+  "tip": "야외활동 시 유용한 쾌적 팁 (1-2문장)"
+}
+    `.trim();
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
+      `[https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=$){apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,13 +91,15 @@ ${reportPrompt}
     }
 
     const data = await response.json();
-    let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '추천 결과를 생성할 수 없습니다.';
+    let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // 마크다운 특수문자(*, #, @) 제거
-    reply = reply.replace(/[*#@]/g, '');
+    // 백틱 및 json 레이블 제거 후 JSON 파싱
+    replyText = replyText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const resultJson = JSON.parse(replyText);
 
-    return res.status(200).json({ result: reply });
+    return res.status(200).json(resultJson);
+
   } catch (error) {
-    return res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+    return res.status(500).json({ error: '서버 에러가 발생했습니다: ' + error.message });
   }
 }
