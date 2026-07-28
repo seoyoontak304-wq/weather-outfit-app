@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>실시간 날씨 & 옷차림 맞춤 추천</title>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --accent: #10B981;
+      --danger: #EF4444;
+      --bg: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --text: #1F2937;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #E5E7EB;
+      background: #F9FAFB;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #6B7280;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+
+    .gps-btn {
+      background-color: #6B7280;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 6px;
+      padding: 8px;
+      font-size: 0.85rem;
+    }
+
+    .submit-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .report-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 18px;
+      background-color: #F9FAFB;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      white-space: pre-line;
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+
+    .status-badge {
+      background: #EFF6FF;
+      color: #1E40AF;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      margin-top: 16px;
+      border: 1px solid #BFDBFE;
+      line-height: 1.6;
+    }
+
+    /* 최근 제보 관리 박스 */
+    .my-reports-box {
+      margin-top: 20px;
+      padding: 14px;
+      background-color: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 10px;
+    }
+
+    .my-reports-title {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #991B1B;
+      margin-bottom: 8px;
+    }
+
+    .report-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed #FCA5A5;
+      font-size: 0.85rem;
+    }
+
+    .report-item:last-child {
+      border-bottom: none;
+    }
+
+    .cancel-btn {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      cursor: pointer;
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🌤️ 야외 날씨 & 옷차림 맞춤 추천</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('recommendTab')">옷차림 추천받기</button>
+    <button class="tab-btn" onclick="switchTab('reportTab')">현장 날씨 제보하기</button>
+  </div>
+
+  <!-- 1. 옷차림 추천받기 영역 -->
+  <div id="recommendTab" class="section active">
+    <form id="recommendForm">
+      <div class="form-group">
+        <label for="recCitySelect">목적지 선택 (전국 17개 시/도)</label>
+        <select id="recCitySelect" onchange="checkReportStatus()">
+          <option value="서울특별시" data-lat="37.5665" data-lon="126.9780">서울특별시</option>
+          <option value="부산광역시" data-lat="35.1796" data-lon="129.0756">부산광역시</option>
+          <option value="대구광역시" data-lat="35.8714" data-lon="128.6014">대구광역시</option>
+          <option value="인천광역시" data-lat="37.4563" data-lon="126.7052">인천광역시</option>
+          <option value="광주광역시" data-lat="35.1595" data-lon="126.8526">광주광역시</option>
+          <option value="대전광역시" data-lat="36.3510" data-lon="127.3850">대전광역시</option>
+          <option value="울산광역시" data-lat="35.5384" data-lon="129.3114">울산광역시</option>
+          <option value="세종특별자치시" data-lat="36.4800" data-lon="127.2890">세종특별자치시</option>
+          <option value="경기도" data-lat="37.2750" data-lon="127.0094">경기도</option>
+          <option value="강원특별자치도" data-lat="37.8853" data-lon="127.7298">강원특별자치도</option>
+          <option value="충청북도" data-lat="36.6358" data-lon="127.4914">충청북도</option>
+          <option value="충청남도" data-lat="36.6588" data-lon="126.6728">충청남도</option>
+          <option value="전라북도특별자치도" data-lat="35.8242" data-lon="127.1480">전라북도특별자치도</option>
+          <option value="전라남도" data-lat="34.8161" data-lon="126.4629">전라남도</option>
+          <option value="경상북도" data-lat="36.5760" data-lon="128.5056">경상북도</option>
+          <option value="경상남도" data-lat="35.2383" data-lon="128.6924">경상남도</option>
+          <option value="제주특별자치도" data-lat="33.4996" data-lon="126.5312">제주특별자치도</option>
+        </select>
+      </div>
+
+      <!-- 선택된 목적지에 제보가 존재할 때만 나타나는 영역 -->
+      <div class="status-badge" id="reportStatusBox" style="display: none;"></div>
+
+      <button type="submit" class="submit-btn" id="recommendBtn">맞춤 옷차림 추천받기</button>
+    </form>
+
+    <div id="loading" style="display:none; text-align:center; margin-top:15px; color:#666;">
+      🤖 기상 데이터와 현장 제보를 분석 중입니다...
+    </div>
+    <div id="result" class="result-box" style="display:none;"></div>
+  </div>
+
+  <!-- 2. 현장 날씨 제보하기 영역 -->
+  <div id="reportTab" class="section">
+    <p style="font-size:0.85rem; color:#666;">지금 야외에 계신가요? 현위치를 확인하고 실시간 날씨를 공유해보세요!</p>
+
+    <form id="reportForm">
+      <div class="form-group">
+        <label for="repCitySelect">제보 지역 선택</label>
+        <select id="repCitySelect">
+          <option value="서울특별시">서울특별시</option>
+          <option value="부산광역시">부산광역시</option>
+          <option value="대구광역시">대구광역시</option>
+          <option value="인천광역시">인천광역시</option>
+          <option value="광주광역시">광주광역시</option>
+          <option value="대전광역시">대전광역시</option>
+          <option value="울산광역시">울산광역시</option>
+          <option value="세종특별자치시">세종특별자치시</option>
+          <option value="경기도">경기도</option>
+          <option value="강원특별자치도">강원특별자치도</option>
+          <option value="충청북도">충청북도</option>
+          <option value="충청남도">충청남도</option>
+          <option value="전라북도특별자치도">전라북도특별자치도</option>
+          <option value="전라남도">전라남도</option>
+          <option value="경상북도">경상북도</option>
+          <option value="경상남도">경상남도</option>
+          <option value="제주특별자치도">제주특별자치도</option>
+        </select>
+        <button type="button" class="gps-btn" onclick="getGPSLocation()">📍 현재 위치 자동으로 가져오기</button>
+      </div>
+
+      <div class="form-group">
+        <label for="repFeelTemp">현재 체감 온도</label>
+        <select id="repFeelTemp">
+          <option value="매우 더움">매우 더움 🥵</option>
+          <option value="더움">더움 ☀️</option>
+          <option value="적당함" selected>적당함 😊</option>
+          <option value="쌀쌀함">쌀쌀함 🍃</option>
+          <option value="추움">추움 🥶</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="repWeather">현재 현장 날씨</label>
+        <select id="repWeather">
+          <option value="햇빛 강함">햇빛 강함 ☀️</option>
+          <option value="바람 많음">바람 많음 💨</option>
+          <option value="비/흐림">비/흐림 🌧️</option>
+          <option value="화창함" selected>화창함 🌤️</option>
+        </select>
+      </div>
+
+      <button type="submit" class="report-btn">현장 제보 등록하기</button>
+    </form>
+
+    <!-- 내 제보 목록 및 취소 영역 -->
+    <div id="myReportsContainer" class="my-reports-box" style="display: none;">
+      <div class="my-reports-title">📝 내가 등록한 최근 제보 (잘못 제보 시 취소)</div>
+      <div id="myReportsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 전체 저장된 제보 목록
+  let reports = [
+    { id: 1, city: "서울특별시", feelTemp: "더움", weather: "화창함", isMine: false },
+    { id: 2, city: "서울특별시", feelTemp: "더움", weather: "햇빛 강함", isMine: false },
+    { id: 3, city: "서울특별시", feelTemp: "적당함", weather: "화창함", isMine: false },
+    { id: 4, city: "경기도", feelTemp: "쌀쌀함", weather: "비/흐림", isMine: false }
+  ];
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+
+    if (tabId === 'recommendTab') {
+      document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      document.getElementById('recommendTab').classList.add('active');
+      checkReportStatus();
+    } else {
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      document.getElementById('reportTab').classList.add('active');
+      renderMyReports();
+    }
+  }
+
+  // 선택한 목적지에 제보가 있을 때만 퍼센트 통계 표시
+  function checkReportStatus() {
+    const selectedCity = document.getElementById('recCitySelect').value;
+    const cityReports = reports.filter(r => r.city === selectedCity);
+    const box = document.getElementById('reportStatusBox');
+
+    if (cityReports.length === 0) {
+      box.style.display = 'none';
+      box.innerText = '';
+      return;
+    }
+
+    const total = cityReports.length;
+    const feelCounts = {};
+    const weatherCounts = {};
+
+    cityReports.forEach(r => {
+      feelCounts[r.feelTemp] = (feelCounts[r.feelTemp] || 0) + 1;
+      weatherCounts[r.weather] = (weatherCounts[r.weather] || 0) + 1;
+    });
+
+    const feelSummary = Object.entries(feelCounts)
+      .map(([k, v]) => `${k} ${Math.round((v / total) * 100)}%`)
+      .join(', ');
+
+    const weatherSummary = Object.entries(weatherCounts)
+      .map(([k, v]) => `${k} ${Math.round((v / total) * 100)}%`)
+      .join(', ');
+
+    box.style.display = 'block';
+    box.innerHTML = `📢 <b>${selectedCity} 오늘 제보 요약 (총 ${total}건)</b><br>` +
+                    `체감 온도: ${feelSummary}<br>` +
+                    `현장 날씨: ${weatherSummary}`;
+  }
+
+  // 사용자가 등록한 제보 목록 표시 및 삭제(취소) 기능
+  function renderMyReports() {
+    const myReports = reports.filter(r => r.isMine);
+    const container = document.getElementById('myReportsContainer');
+    const listEl = document.getElementById('myReportsList');
+
+    if (myReports.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+    listEl.innerHTML = '';
+
+    myReports.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'report-item';
+      item.innerHTML = `
+        <span>[${r.city}] ${r.feelTemp} / ${r.weather}</span>
+        <button class="cancel-btn" onclick="cancelReport(${r.id})">제보 취소</button>
+      `;
+      listEl.appendChild(item);
+    });
+  }
+
+  // 제보 취소 처리 함수
+  function cancelReport(id) {
+    if (confirm('해당 제보를 취소하시겠습니까?')) {
+      reports = reports.filter(r => r.id !== id);
+      alert('제보가 취소되었습니다.');
+      renderMyReports();
+      checkReportStatus();
+    }
+  }
+
+  // 제보자 GPS 자동 위치 조회
+  function getGPSLocation() {
+    if (!navigator.geolocation) {
+      alert("브라우저가 위치 서비스를 지원하지 않습니다.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+        const addr = data.address;
+        const region = addr.province || addr.city || '';
+
+        const repSelect = document.getElementById('repCitySelect');
+        for (let i = 0; i < repSelect.options.length; i++) {
+          if (region.includes(repSelect.options[i].value.substring(0, 2))) {
+            repSelect.selectedIndex = i;
+            break;
+          }
+        }
+        alert(`현재 위치 기반으로 [${repSelect.value}]가 선택되었습니다.`);
+      } catch (e) {
+        alert("위치 주소 변환에 실패했습니다.");
+      }
+    }, () => {
+      alert("위치 정보를 가져올 수 없습니다.");
+    });
+  }
+
+  // 현장 사용자: 제보 등록
+  document.getElementById('reportForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const city = document.getElementById('repCitySelect').value;
+    const feelTemp = document.getElementById('repFeelTemp').value;
+    const weather = document.getElementById('repWeather').value;
+
+    const newReport = {
+      id: Date.now(),
+      city,
+      feelTemp,
+      weather,
+      isMine: true
+    };
+
+    reports.push(newReport);
+
+    alert(`${city} 현장 제보가 등록되었습니다! 잘못 입력하셨다면 하단 목록에서 취소할 수 있습니다.`);
+    renderMyReports();
+  });
+
+  // 초기화
+  window.onload = function() {
+    checkReportStatus();
+    renderMyReports();
+  };
+
+  // 옷차림 추천 요청
+  document.getElementById('recommendForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const select = document.getElementById('recCitySelect');
+    const selectedOption = select.options[select.selectedIndex];
+    const locationName = select.value;
+    const lat = selectedOption.dataset.lat;
+    const lon = selectedOption.dataset.lon;
+
+    const box = document.getElementById('reportStatusBox');
+    const targetReportSummary = box.style.display !== 'none' ? box.innerText : '';
+
+    const payload = {
+      locationName,
+      lat,
+      lon,
+      targetReportSummary
+    };
+
+    const btn = document.getElementById('recommendBtn');
+    const loading = document.getElementById('loading');
+    const resultBox = document.getElementById('result');
+
+    btn.disabled = true;
+    loading.style.display = 'block';
+    resultBox.style.display = 'none';
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        resultBox.innerText = data.result;
+        resultBox.style.display = 'block';
+      } else {
+        alert('오류 발생: ' + (data.error || '처리 실패'));
+      }
+    } catch (err) {
+      alert('네트워크 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
